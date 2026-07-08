@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>Indexarr</Name>
+  <Repository>indexarr:latest</Repository>
+  <Registry>https://hub.docker.com/</Registry>
+  <Network>bridge</Network>
+  <MyIP/>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support/>
+  <Project/>
+  <Overview>Indexarr is a self-hosted ASP.NET Core web app for monitoring and automating Prowlarr indexer health.</Overview>
+  <Category>Tools:</Category>
+  <WebUI>http://[IP]:[PORT:8080]/</WebUI>
+  <TemplateURL/>
+  <Icon/>
+  <ExtraParams/>
+  <PostArgs/>
+  <CPUset/>
+  <DateInstalled/>
+  <DonateText/>
+  <DonateLink/>
+  <Requires/>
+  <Config Name="WebUI" Target="8080" Default="9697" Mode="tcp" Description="HTTP port for Indexarr" Type="Port" Display="always" Required="true" Mask="false">8080</Config>
+  <Config Name="Config" Target="/config" Default="/mnt/cache/appdata/Indexarr" Mode="rw" Description="Persistent application data" Type="Path" Display="always" Required="true" Mask="false">/config</Config>
+  <Config Name="Backups" Target="/backups" Default="/mnt/user/backups/Indexarr" Mode="rw" Description="Backup destination" Type="Path" Display="always" Required="true" Mask="false">/backups</Config>
+  <Config Name="Logs" Target="/logs" Default="/mnt/user/appdata/Indexarr/logs" Mode="rw" Description="Optional logs folder" Type="Path" Display="advanced" Required="false" Mask="false">/logs</Config>
+  <Config Name="Timezone" Target="TZ" Default="Europe/Rome" Mode="" Description="Container timezone" Type="Variable" Display="always" Required="true" Mask="false">Europe/Rome</Config>
+  <Config Name="ProwlarrUrl" Target="Indexarr__Prowlarr__Url" Default="http://prowlarr:9696" Mode="" Description="Prowlarr base URL" Type="Variable" Display="always" Required="true" Mask="false">http://prowlarr:9696</Config>
+  <Config Name="ProwlarrApiKey" Target="Indexarr__Prowlarr__ApiKey" Default="" Mode="" Description="Prowlarr API key" Type="Variable" Display="always" Required="false" Mask="true"></Config>
+  <Config Name="AutomationEnabled" Target="Indexarr__Automation__Enabled" Default="true" Mode="" Description="Enable scheduled indexer checks" Type="Variable" Display="advanced" Required="false" Mask="false">true</Config>
+  <Config Name="AutomationIntervalMinutes" Target="Indexarr__Automation__IntervalMinutes" Default="15" Mode="" Description="Minutes between scheduled health checks" Type="Variable" Display="advanced" Required="false" Mask="false">15</Config>
+</Container>

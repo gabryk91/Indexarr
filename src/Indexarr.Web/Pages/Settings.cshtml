@@ -1,0 +1,388 @@
+@page
+@using Indexarr.Web.Localization
+@model SettingsModel
+@{
+    ViewData["Title"] = UiTextCatalog.Get(Model.CurrentLanguage, "NavSettings");
+    string T(string key) => UiTextCatalog.Get(Model.CurrentLanguage, key);
+    string Required(string label) => $"{label} *";
+}
+
+<section class="settings-shell">
+    <div class="settings-header">
+        <h1>@T("NavSettings")</h1>
+        <p>@T("SettingsLead")</p>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Model.FlashMessage))
+    {
+        <section class="flash-banner">@Model.FlashMessage</section>
+    }
+
+    @if (!ViewContext.ModelState.IsValid)
+    {
+        <div class="validation-summary-errors login-alert" asp-validation-summary="All"></div>
+    }
+
+    <nav class="settings-tabs">
+        <a asp-page="/Settings" asp-route-tab="general" class="settings-tab @(Model.Tab == "general" ? "is-active" : string.Empty)">@T("TabGeneral")</a>
+        <a asp-page="/Settings" asp-route-tab="account" class="settings-tab @(Model.Tab == "account" ? "is-active" : string.Empty)">@T("TabAccount")</a>
+        <a asp-page="/Settings" asp-route-tab="integrations" class="settings-tab @(Model.Tab == "integrations" ? "is-active" : string.Empty)">@T("TabIntegrations")</a>
+        <a asp-page="/Settings" asp-route-tab="protections" class="settings-tab @(Model.Tab == "protections" ? "is-active" : string.Empty)">@T("TabProtections")</a>
+        <a asp-page="/Settings" asp-route-tab="maintenance" class="settings-tab @(Model.Tab == "maintenance" ? "is-active" : string.Empty)">@T("TabMaintenance")</a>
+    </nav>
+
+    @if (Model.Tab == "general")
+    {
+        <section class="settings-card">
+            <h2>@T("GeneralConfigTitle")</h2>
+            <p class="settings-subtitle">@T("GeneralConfigLead")</p>
+            <form method="post" asp-page-handler="SaveSettings" class="settings-form" data-long-operation="true">
+                <input type="hidden" asp-for="Tab" value="general" />
+                <div class="settings-grid">
+                    <div>
+                        <label asp-for="Input.Language" class="form-label">@Required(T("Language"))</label>
+                        <select asp-for="Input.Language" class="form-select">
+                            <option value="it">@T("LangIt")</option>
+                            <option value="en">@T("LangEn")</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label asp-for="Input.Timezone" class="form-label">@Required(T("Timezone"))</label>
+                        <input asp-for="Input.Timezone" class="form-control" />
+                    </div>
+                    <div>
+                        <label asp-for="Input.Mode" class="form-label">@Required(T("Mode"))</label>
+                        <select asp-for="Input.Mode" class="form-select">
+                            <option value="DryRun">DryRun</option>
+                            <option value="Apply">Apply</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label asp-for="Input.FailureThreshold" class="form-label">@T("FailureThreshold")</label>
+                        <input asp-for="Input.FailureThreshold" class="form-control" type="number" min="1" max="20" />
+                    </div>
+                    <div>
+                        <label asp-for="Input.HealthCheckTimeoutSeconds" class="form-label">@T("HealthCheckTimeoutSeconds")</label>
+                        <input asp-for="Input.HealthCheckTimeoutSeconds" class="form-control" type="number" min="5" max="120" />
+                    </div>
+                    <div class="settings-full">
+                        <label class="form-check">
+                            <input asp-for="Input.AutomationEnabled" class="form-check-input" />
+                            <span class="form-check-label">@T("AutomationEnabled")</span>
+                        </label>
+                        <p class="settings-help">@T("AutomationEnabledHelp")</p>
+                    </div>
+                    <div>
+                        <label asp-for="Input.AutomationIntervalMinutes" class="form-label">@T("AutomationIntervalMinutes")</label>
+                        <input asp-for="Input.AutomationIntervalMinutes" class="form-control" type="number" min="1" max="1440" />
+                        <p class="settings-help">@T("AutomationIntervalMinutesHelp")</p>
+                    </div>
+                </div>
+                <div class="settings-submit-row">
+                    <button type="submit" class="btn btn-primary">@T("SaveChanges")</button>
+                </div>
+            </form>
+        </section>
+    }
+    else if (Model.Tab == "integrations")
+    {
+        <section class="settings-card">
+            <h2>@T("ConnectionTitle")</h2>
+            <p class="settings-subtitle">@T("IntegrationLead")</p>
+            <form method="post" asp-page-handler="SaveSettings" class="settings-form" data-long-operation="true">
+                <input type="hidden" asp-for="Tab" value="integrations" />
+                <div class="settings-grid">
+                    <div class="settings-full">
+                        <label asp-for="Input.ProwlarrUrl" class="form-label">@Required(T("ProwlarrUrl"))</label>
+                        <input asp-for="Input.ProwlarrUrl" class="form-control" />
+                    </div>
+                    <div class="settings-full">
+                        <label asp-for="Input.ProwlarrApiKey" class="form-label">@T("ProwlarrApiKey")</label>
+                        <input asp-for="Input.ProwlarrApiKey" class="form-control" />
+                    </div>
+                </div>
+                <div class="settings-actions">
+                    <button type="submit" class="btn btn-primary">@T("SaveChanges")</button>
+                    <button type="submit" formaction="?handler=TestConnection" class="btn btn-outline-light">@T("TestConnection")</button>
+                </div>
+            </form>
+        </section>
+    }
+    else if (Model.Tab == "protections")
+    {
+        <section class="settings-card">
+            <h2>@T("ProtectionConfigTitle")</h2>
+            <p class="settings-subtitle">@T("ProtectionConfigLead")</p>
+            <form method="post" asp-page-handler="SaveSettings" class="settings-form" data-long-operation="true">
+                <input type="hidden" asp-for="Tab" value="protections" />
+                <div class="settings-checks">
+                    <label class="form-check"><input asp-for="Input.BackupBeforeChanges" class="form-check-input" /> <span class="form-check-label">@T("BackupBeforeChanges")</span></label>
+                    <label class="form-check"><input asp-for="Input.AutoDisableFailedIndexers" class="form-check-input" /> <span class="form-check-label">@T("AutoDisable")</span></label>
+                    <label class="form-check"><input asp-for="Input.AutoAddPublicIndexers" class="form-check-input" /> <span class="form-check-label">@T("AutoAdd")</span></label>
+                </div>
+                <div class="settings-divider">
+                    <h3>@T("IndexerDiscoveryTitle")</h3>
+                    <p class="settings-help">@T("IndexerDiscoveryLead")</p>
+                </div>
+                <div class="settings-grid">
+                    <div>
+                        <label asp-for="Input.AutoAddProtocolFilter" class="form-label">@T("AutoAddProtocolFilter")</label>
+                        <select asp-for="Input.AutoAddProtocolFilter" class="form-select">
+                            <option value="torrent">torrent</option>
+                            <option value="usenet">usenet</option>
+                            <option value="all">@T("FilterAll")</option>
+                        </select>
+                        <p class="settings-help">@T("AutoAddProtocolFilterHelp")</p>
+                    </div>
+                    <div>
+                        <label class="form-label">@T("AutoAddPrivacyFilter")</label>
+                        <div class="settings-checks settings-checks-compact">
+                            <label class="form-check">
+                                <input type="checkbox" name="SelectedAutoAddPrivacyFilters" value="public" class="form-check-input" checked="@Model.SelectedAutoAddPrivacyFilters.Contains("public", StringComparer.OrdinalIgnoreCase)" />
+                                <span class="form-check-label">public</span>
+                            </label>
+                            <label class="form-check">
+                                <input type="checkbox" name="SelectedAutoAddPrivacyFilters" value="semi-private" class="form-check-input" checked="@Model.SelectedAutoAddPrivacyFilters.Contains("semi-private", StringComparer.OrdinalIgnoreCase)" />
+                                <span class="form-check-label">semi-private</span>
+                            </label>
+                            <label class="form-check">
+                                <input type="checkbox" name="SelectedAutoAddPrivacyFilters" value="private" class="form-check-input" checked="@Model.SelectedAutoAddPrivacyFilters.Contains("private", StringComparer.OrdinalIgnoreCase)" />
+                                <span class="form-check-label">private</span>
+                            </label>
+                        </div>
+                        <p class="settings-help">@T("AutoAddPrivacyFilterHelp")</p>
+                    </div>
+                    <div>
+                        <label asp-for="Input.AutoAddLanguageFilter" class="form-label">@T("AutoAddLanguageFilter")</label>
+                        <input asp-for="Input.AutoAddLanguageFilter" class="form-control" />
+                        <p class="settings-help">@T("AutoAddLanguageFilterHelp")</p>
+                    </div>
+                    <div>
+                        <label asp-for="Input.AutoAddLanguageMatchMode" class="form-label">@T("AutoAddLanguageMatchMode")</label>
+                        <select asp-for="Input.AutoAddLanguageMatchMode" class="form-select">
+                            <option value="any">@T("LanguageMatchAny")</option>
+                            <option value="all">@T("LanguageMatchAll")</option>
+                        </select>
+                        <p class="settings-help">@T("AutoAddLanguageMatchModeHelp")</p>
+                    </div>
+                    <div class="settings-full">
+                        <label class="form-check">
+                            <input asp-for="Input.AutoAddAllowUnknownLanguage" class="form-check-input" />
+                            <span class="form-check-label">@T("AutoAddAllowUnknownLanguage")</span>
+                        </label>
+                        <p class="settings-help">@T("AutoAddAllowUnknownLanguageHelp")</p>
+                    </div>
+                    <div class="settings-full">
+                        <label class="form-label">@T("AutoAddCategoryFilter")</label>
+                        <div class="category-picker">
+                            @if (Model.AvailableCategories.Count == 0)
+                            {
+                                <p class="settings-help">@T("AutoAddCategoryFilterUnavailable")</p>
+                            }
+                            else
+                            {
+                                @foreach (var category in Model.AvailableCategories)
+                                {
+                                    var isChecked = Model.SelectedAutoAddCategoryIds.Contains(category.Id);
+                                    <label class="category-option" style="--category-depth:@category.Depth">
+                                        <input type="checkbox" name="SelectedAutoAddCategoryIds" value="@category.Id" checked="@isChecked" data-category-depth="@category.Depth" />
+                                        <span>@category.Name <small>(@category.Id)</small></span>
+                                    </label>
+                                }
+                            }
+                        </div>
+                        <p class="settings-help">@T("AutoAddCategoryFilterHelp")</p>
+                    </div>
+                    <div data-global-credential-field>
+                        <label asp-for="Input.AutoAddGlobalUsername" class="form-label">@T("AutoAddGlobalUsername")</label>
+                        <input asp-for="Input.AutoAddGlobalUsername" class="form-control" autocomplete="username" data-global-credential-input />
+                        <p class="settings-help">@T("AutoAddGlobalUsernameHelp")</p>
+                    </div>
+                    <div data-global-credential-field>
+                        <label asp-for="Input.AutoAddGlobalPassword" class="form-label">@T("AutoAddGlobalPassword")</label>
+                        @* asp-for su un input type="password" non ripopola mai il "value" (comportamento
+                           di sicurezza di default di ASP.NET Core). Lo scriviamo manualmente per mostrare
+                           la password già salvata, come richiesto. *@
+                        <input name="Input.AutoAddGlobalPassword" id="Input_AutoAddGlobalPassword" class="form-control" type="password" autocomplete="new-password" data-global-credential-input value="@Model.Input.AutoAddGlobalPassword" />
+                        <p class="settings-help">@T("AutoAddGlobalPasswordHelp")</p>
+                    </div>
+                </div>
+                <div class="settings-divider">
+                    <h3>@T("IndexerDefaultsTitle")</h3>
+                    <p class="settings-help">@T("IndexerDefaultsLead")</p>
+                </div>
+                <div class="settings-grid">
+                    <div>
+                        <label asp-for="Input.AutoAddDefaultQueryLimit" class="form-label">@T("AutoAddDefaultQueryLimit")</label>
+                        <input asp-for="Input.AutoAddDefaultQueryLimit" class="form-control" type="number" min="0" />
+                        <p class="settings-help">@T("AutoAddDefaultQueryLimitHelp")</p>
+                    </div>
+                    <div>
+                        <label asp-for="Input.AutoAddDefaultGrabLimit" class="form-label">@T("AutoAddDefaultGrabLimit")</label>
+                        <input asp-for="Input.AutoAddDefaultGrabLimit" class="form-control" type="number" min="0" />
+                        <p class="settings-help">@T("AutoAddDefaultGrabLimitHelp")</p>
+                    </div>
+                    <div>
+                        <label asp-for="Input.AutoAddDefaultLimitsUnit" class="form-label">@T("AutoAddDefaultLimitsUnit")</label>
+                        <select asp-for="Input.AutoAddDefaultLimitsUnit" class="form-select">
+                            <option value="">@T("InheritDefault")</option>
+                            <option value="Day">Day</option>
+                            <option value="Hour">Hour</option>
+                            <option value="Week">Week</option>
+                            <option value="Month">Month</option>
+                        </select>
+                        <p class="settings-help">@T("AutoAddDefaultLimitsUnitHelp")</p>
+                    </div>
+                    <div>
+                        <label asp-for="Input.AutoAddDefaultAppMinimumSeeders" class="form-label">@T("AutoAddDefaultAppMinimumSeeders")</label>
+                        <input asp-for="Input.AutoAddDefaultAppMinimumSeeders" class="form-control" type="number" min="0" />
+                        <p class="settings-help">@T("AutoAddDefaultAppMinimumSeedersHelp")</p>
+                    </div>
+                    <div>
+                        <label asp-for="Input.AutoAddDefaultSeedRatio" class="form-label">@T("AutoAddDefaultSeedRatio")</label>
+                        <input asp-for="Input.AutoAddDefaultSeedRatio" class="form-control" type="number" min="0" step="0.1" />
+                        <p class="settings-help">@T("AutoAddDefaultSeedRatioHelp")</p>
+                    </div>
+                    <div>
+                        <label asp-for="Input.AutoAddDefaultSeedTime" class="form-label">@T("AutoAddDefaultSeedTime")</label>
+                        <input asp-for="Input.AutoAddDefaultSeedTime" class="form-control" type="number" min="0" />
+                        <p class="settings-help">@T("AutoAddDefaultSeedTimeHelp")</p>
+                    </div>
+                    <div>
+                        <label asp-for="Input.AutoAddDefaultPackSeedTime" class="form-label">@T("AutoAddDefaultPackSeedTime")</label>
+                        <input asp-for="Input.AutoAddDefaultPackSeedTime" class="form-control" type="number" min="0" />
+                        <p class="settings-help">@T("AutoAddDefaultPackSeedTimeHelp")</p>
+                    </div>
+                    <div>
+                        <label asp-for="Input.AutoAddDefaultPreferMagnetUrlMode" class="form-label">@T("AutoAddDefaultPreferMagnetUrlMode")</label>
+                        <select asp-for="Input.AutoAddDefaultPreferMagnetUrlMode" class="form-select">
+                            <option value="inherit">@T("InheritDefault")</option>
+                            <option value="enable">@T("Yes")</option>
+                            <option value="disable">@T("No")</option>
+                        </select>
+                        <p class="settings-help">@T("AutoAddDefaultPreferMagnetUrlModeHelp")</p>
+                    </div>
+                    <div>
+                        <label asp-for="Input.AutoAddDefaultIndexerPriority" class="form-label">@T("AutoAddDefaultIndexerPriority")</label>
+                        <input asp-for="Input.AutoAddDefaultIndexerPriority" class="form-control" type="number" min="1" max="50" />
+                        <p class="settings-help">@T("AutoAddDefaultIndexerPriorityHelp")</p>
+                    </div>
+                    <div>
+                        <label asp-for="Input.AutoAddDefaultDownloadClient" class="form-label">@T("AutoAddDefaultDownloadClient")</label>
+                        <select asp-for="Input.AutoAddDefaultDownloadClient" class="form-select">
+                            <option value="">(Any)</option>
+                            @foreach (var client in Model.DownloadClients)
+                            {
+                                <option value="@client.Id">@client.Name</option>
+                            }
+                        </select>
+                        <p class="settings-help">@T("AutoAddDefaultDownloadClientHelp")</p>
+                    </div>
+                    <div class="settings-full">
+                        <label asp-for="Input.AutoAddDefaultFilterByUploader" class="form-label">@T("AutoAddDefaultFilterByUploader")</label>
+                        <input asp-for="Input.AutoAddDefaultFilterByUploader" class="form-control" />
+                        <p class="settings-help">@T("AutoAddDefaultFilterByUploaderHelp")</p>
+                    </div>
+                    <div class="settings-full">
+                        <label asp-for="Input.AutoAddDefaultTags" class="form-label">@T("AutoAddDefaultTags")</label>
+                        <div class="tag-picker" data-tag-picker data-available-tags="@Model.AvailableTagsJson">
+                            <input asp-for="Input.AutoAddDefaultTags" type="hidden" />
+                            <div class="tag-picker-surface" data-role="surface">
+                                <div class="tag-picker-pills" data-role="pills"></div>
+                                <input type="text" class="tag-picker-input" data-role="input" autocomplete="off" spellcheck="false" />
+                            </div>
+                            <div class="tag-picker-menu" data-role="menu" hidden></div>
+                        </div>
+                        <p class="settings-help">@T("AutoAddDefaultTagsHelp")</p>
+                    </div>
+                </div>
+                <div class="settings-submit-row">
+                    <button type="submit" class="btn btn-primary">@T("SaveChanges")</button>
+                </div>
+            </form>
+        </section>
+    }
+    else if (Model.Tab == "account")
+    {
+        <section class="settings-card">
+            <h2>@T("AccountConfigTitle")</h2>
+            <p class="settings-subtitle">@T("AccountConfigLead")</p>
+            <div class="config-lines">
+                <span><strong>@T("Username"):</strong> @Model.CurrentUsername</span>
+            </div>
+            <form method="post" asp-page-handler="ChangePassword" class="settings-form" data-long-operation="true">
+                <input type="hidden" asp-for="Tab" value="account" />
+                <div class="settings-grid">
+                    <div class="settings-full">
+                        <label asp-for="CurrentPassword" class="form-label">@T("CurrentPassword")</label>
+                        <input asp-for="CurrentPassword" type="password" class="form-control" />
+                    </div>
+                    <div>
+                        <label asp-for="NewPassword" class="form-label">@T("NewPassword")</label>
+                        <input asp-for="NewPassword" type="password" class="form-control" />
+                    </div>
+                    <div>
+                        <label asp-for="ConfirmNewPassword" class="form-label">@T("ConfirmPassword")</label>
+                        <input asp-for="ConfirmNewPassword" type="password" class="form-control" />
+                    </div>
+                </div>
+                <div class="settings-submit-row">
+                    <button type="submit" class="btn btn-primary">@T("ChangePassword")</button>
+                </div>
+            </form>
+        </section>
+    }
+    else if (Model.Tab == "maintenance")
+    {
+        <section class="settings-card">
+            <h2>@T("MaintenanceConfigTitle")</h2>
+            <p class="settings-subtitle">@T("MaintenanceConfigLead")</p>
+            <div class="settings-section-stack">
+                <div class="settings-section">
+                    <div class="settings-section-header">
+                        <h3>@T("CreateBackupNow")</h3>
+                    </div>
+                    <form method="post" asp-page-handler="BackupNow" class="settings-form" data-long-operation="true">
+                        <input type="hidden" asp-for="Tab" value="maintenance" />
+                        <div class="settings-submit-row">
+                            <button type="submit" class="btn btn-outline-light">@T("CreateBackupNow")</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="settings-section">
+                    <div class="settings-section-header">
+                        <h3>@T("AutoAddCooldownTitle")</h3>
+                        <p class="settings-help">@T("AutoAddCooldownLead")</p>
+                    </div>
+
+                    <form method="post" asp-page-handler="SaveSettings" class="settings-form" data-long-operation="true">
+                        <input type="hidden" asp-for="Tab" value="maintenance" />
+                        <div class="settings-grid settings-grid-single">
+                            <div>
+                                <label asp-for="Input.AutoAddFailureCooldownHours" class="form-label">@T("AutoAddFailureCooldownHours")</label>
+                                <input asp-for="Input.AutoAddFailureCooldownHours" class="form-control" type="number" min="1" max="168" />
+                                <p class="settings-help">@T("AutoAddFailureCooldownHoursHelp")</p>
+                            </div>
+                        </div>
+                        <div class="settings-submit-row">
+                            <button type="submit" class="btn btn-primary">@T("SaveChanges")</button>
+                        </div>
+                    </form>
+
+                    <div class="settings-status-box">
+                        <div class="config-lines">
+                            <span><strong>@T("AutoAddCooldownCount")</strong> @Model.AutoAddCooldownCount</span>
+                        </div>
+                        <form method="post" asp-page-handler="ClearAutoAddCooldown" class="settings-form">
+                            <input type="hidden" asp-for="Tab" value="maintenance" />
+                            <div class="settings-submit-row">
+                                <button type="submit" class="btn btn-outline-light">@T("ClearAutoAddCooldown")</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+    }
+</section>

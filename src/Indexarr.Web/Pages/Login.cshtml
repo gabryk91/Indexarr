@@ -1,0 +1,48 @@
+@page
+@using Indexarr.Web.Localization
+@model LoginModel
+@{
+    ViewData["Title"] = UiTextCatalog.Get(Model.CurrentLanguage, "NavLogin");
+    string T(string key) => UiTextCatalog.Get(Model.CurrentLanguage, key);
+}
+
+<section class="login-shell">
+    <article class="login-card">
+        <div class="login-brand">
+            <img src="~/images/indexarr_logo.png" alt="Indexarr" class="brand-logo brand-logo-login" />
+            <div>
+                <h1>Indexarr</h1>
+                <p>@(Model.IsFirstRun ? T("CreateAdminLead") : T("LoginLead"))</p>
+            </div>
+        </div>
+
+        @if (!ViewContext.ModelState.IsValid)
+        {
+            <div class="validation-summary-errors login-alert" asp-validation-summary="All"></div>
+        }
+
+        <form method="post" class="login-form">
+            <input type="hidden" asp-for="ReturnUrl" />
+            <div>
+                <label asp-for="Username" class="form-label">@T("Username")</label>
+                <input asp-for="Username" class="form-control" autocomplete="username" />
+            </div>
+            <div>
+                <label asp-for="Password" class="form-label">@T("Password")</label>
+                <input asp-for="Password" type="password" class="form-control" autocomplete="current-password" />
+            </div>
+
+            @if (Model.IsFirstRun)
+            {
+                <div>
+                    <label asp-for="ConfirmPassword" class="form-label">@T("ConfirmPassword")</label>
+                    <input asp-for="ConfirmPassword" type="password" class="form-control" autocomplete="new-password" />
+                </div>
+            }
+
+            <button type="submit" class="btn btn-primary w-100">
+                @(Model.IsFirstRun ? T("CreateAdminAccount") : T("SignIn"))
+            </button>
+        </form>
+    </article>
+</section>

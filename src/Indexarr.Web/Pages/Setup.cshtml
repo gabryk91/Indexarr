@@ -1,0 +1,221 @@
+@page
+@using Indexarr.Web.Localization
+@model SetupModel
+@{
+    ViewData["Title"] = UiTextCatalog.Get(Model.CurrentLanguage, "SetupTitle");
+    string T(string key) => UiTextCatalog.Get(Model.CurrentLanguage, key);
+}
+
+<section class="hero">
+    <div class="hero-copy">
+        <span class="eyebrow">@T("SetupBadge")</span>
+        <h1>@T("SetupTitle")</h1>
+        <p class="lead">@T("SetupLead")</p>
+    </div>
+    <div class="hero-panel">
+        <div class="status-card accent">
+            <span>1</span>
+            <strong>@T("Step1")</strong>
+        </div>
+        <div class="status-card">
+            <span>2</span>
+            <strong>@T("Step2")</strong>
+        </div>
+        <div class="status-card">
+            <span>3</span>
+            <strong>@T("Step3")</strong>
+        </div>
+        <div class="status-card">
+            <span>4</span>
+            <strong>@T("Step4")</strong>
+        </div>
+    </div>
+</section>
+
+@if (Model.Reason == "first-run")
+{
+    <div class="alert alert-info mt-4" role="alert">@T("SetupReasonFirstRun")</div>
+}
+else if (Model.Reason == "prowlarr-unreachable")
+{
+    <div class="alert alert-warning mt-4" role="alert">@T("SetupReasonProwlarr")</div>
+}
+
+@if (Model.ConnectionTested)
+{
+    <div class="alert @(Model.ConnectionSucceeded ? "alert-success" : "alert-danger") mt-4" role="alert">
+        @(Model.ConnectionSucceeded ? T("ConnectionOk") : T("ConnectionFail")) @Model.ConnectionMessage
+    </div>
+}
+
+<section class="wizard-shell mt-4">
+    <form method="post" class="wizard-form" id="setupWizard">
+        <input asp-for="CurrentStep" type="hidden" id="CurrentStep" />
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+        <div class="wizard-progress">
+            <button class="wizard-progress-item" type="button" data-step-target="1">1. @T("Step1")</button>
+            <button class="wizard-progress-item" type="button" data-step-target="2">2. @T("Step2")</button>
+            <button class="wizard-progress-item" type="button" data-step-target="3">3. @T("Step3")</button>
+            <button class="wizard-progress-item" type="button" data-step-target="4">4. @T("Step4")</button>
+        </div>
+
+        <section class="wizard-step wizard-card" data-step="1">
+            <h2>@T("WelcomeTitle")</h2>
+            <p class="form-text mb-4">@T("WelcomeText")</p>
+            <div class="mb-3">
+                <label asp-for="Input.Language" class="form-label">@T("Language")</label>
+                <select asp-for="Input.Language" class="form-select form-select-lg">
+                    <option value="it">@T("LangIt")</option>
+                    <option value="en">@T("LangEn")</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Input.Timezone" class="form-label">@T("Timezone")</label>
+                <input asp-for="Input.Timezone" class="form-control" />
+                <span asp-validation-for="Input.Timezone" class="text-danger"></span>
+            </div>
+            <div class="wizard-actions">
+                <button type="button" class="btn btn-primary" data-next-step>@T("Next")</button>
+            </div>
+        </section>
+
+        <section class="wizard-step wizard-card" data-step="2">
+            <h2>@T("ConnectionTitle")</h2>
+            <div class="mb-3">
+                <label asp-for="Input.ProwlarrUrl" class="form-label">@T("ProwlarrUrl")</label>
+                <input asp-for="Input.ProwlarrUrl" class="form-control form-control-lg" />
+                <span asp-validation-for="Input.ProwlarrUrl" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Input.ProwlarrApiKey" class="form-label">@T("ProwlarrApiKey")</label>
+                <input asp-for="Input.ProwlarrApiKey" class="form-control form-control-lg" />
+                <span class="form-text">@T("ApiKeyHelp")</span>
+            </div>
+            <div class="wizard-actions">
+                <button type="button" class="btn btn-outline-light" data-previous-step>@T("Previous")</button>
+                <button type="submit" class="btn btn-secondary" asp-page-handler="TestConnection">@T("TestConnection")</button>
+                <button type="button" class="btn btn-primary" data-next-step>@T("Next")</button>
+            </div>
+        </section>
+
+        <section class="wizard-step wizard-card" data-step="3">
+            <h2>@T("PoliciesTitle")</h2>
+            <div class="mb-3">
+                <label asp-for="Input.Mode" class="form-label">@T("Mode")</label>
+                <select asp-for="Input.Mode" class="form-select form-select-lg">
+                    <option value="DryRun">DryRun</option>
+                    <option value="Apply">Apply</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Input.FailureThreshold" class="form-label">@T("FailureThreshold")</label>
+                <input asp-for="Input.FailureThreshold" class="form-control" />
+                <span asp-validation-for="Input.FailureThreshold" class="text-danger"></span>
+            </div>
+            <div class="form-check form-switch mb-3">
+                <input asp-for="Input.BackupBeforeChanges" class="form-check-input" />
+                <label asp-for="Input.BackupBeforeChanges" class="form-check-label">@T("BackupBeforeChanges")</label>
+            </div>
+            <div class="form-check form-switch mb-3">
+                <input asp-for="Input.AutoDisableFailedIndexers" class="form-check-input" />
+                <label asp-for="Input.AutoDisableFailedIndexers" class="form-check-label">@T("AutoDisable")</label>
+            </div>
+            <div class="form-check form-switch">
+                <input asp-for="Input.AutoAddPublicIndexers" class="form-check-input" />
+                <label asp-for="Input.AutoAddPublicIndexers" class="form-check-label">@T("AutoAdd")</label>
+            </div>
+            <div class="wizard-actions">
+                <button type="button" class="btn btn-outline-light" data-previous-step>@T("Previous")</button>
+                <button type="button" class="btn btn-primary" data-next-step>@T("Next")</button>
+            </div>
+        </section>
+
+        <section class="wizard-step wizard-card" data-step="4">
+            <h2>@T("ReviewTitle")</h2>
+            <p class="form-text mb-3">@T("ReviewText")</p>
+            <h3 class="wizard-subtitle">@T("MountsTitle")</h3>
+            <div class="mount-preview mb-4">
+                <span>/config -> /mnt/user/appdata/Indexarr</span>
+                <span>/backups -> /mnt/user/backups/Indexarr</span>
+                <span>/logs -> /mnt/user/appdata/Indexarr/logs</span>
+            </div>
+            <ul class="summary-list">
+                <li>@T("ReviewSaved1")</li>
+                <li>@T("ReviewSaved2")</li>
+                <li>@T("ReviewSaved3")</li>
+                <li>@T("ReviewSaved4")</li>
+            </ul>
+            <div class="wizard-actions">
+                <button type="button" class="btn btn-outline-light" data-previous-step>@T("Previous")</button>
+                <button type="submit" class="btn btn-primary" id="finalSaveButton">@T("Save")</button>
+            </div>
+        </section>
+    </form>
+</section>
+
+<div class="processing-modal" id="processingModal" aria-hidden="true">
+    <div class="processing-modal-card" role="dialog" aria-modal="true" aria-labelledby="processingTitle">
+        <div class="processing-spinner"></div>
+        <h2 id="processingTitle">@T("FinalizingTitle")</h2>
+        <p>@T("FinalizingText")</p>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (() => {
+            const hiddenStep = document.getElementById("CurrentStep");
+            const form = document.getElementById("setupWizard");
+            const finalSaveButton = document.getElementById("finalSaveButton");
+            const processingModal = document.getElementById("processingModal");
+            const stepElements = Array.from(document.querySelectorAll("[data-step]"));
+            const progressButtons = Array.from(document.querySelectorAll("[data-step-target]"));
+            const nextButtons = Array.from(document.querySelectorAll("[data-next-step]"));
+            const previousButtons = Array.from(document.querySelectorAll("[data-previous-step]"));
+            let currentStep = Math.max(1, Math.min(4, Number(hiddenStep.value || "1")));
+
+            const render = () => {
+                hiddenStep.value = currentStep;
+                stepElements.forEach(section => {
+                    section.classList.toggle("is-active", Number(section.dataset.step) === currentStep);
+                });
+                progressButtons.forEach(button => {
+                    button.classList.toggle("is-active", Number(button.dataset.stepTarget) === currentStep);
+                });
+            };
+
+            nextButtons.forEach(button => button.addEventListener("click", () => {
+                currentStep = Math.min(4, currentStep + 1);
+                render();
+            }));
+
+            previousButtons.forEach(button => button.addEventListener("click", () => {
+                currentStep = Math.max(1, currentStep - 1);
+                render();
+            }));
+
+            progressButtons.forEach(button => button.addEventListener("click", () => {
+                currentStep = Number(button.dataset.stepTarget);
+                render();
+            }));
+
+            const showProcessingModal = () => {
+                processingModal?.classList.add("is-active");
+                processingModal?.setAttribute("aria-hidden", "false");
+            };
+
+            finalSaveButton?.addEventListener("click", showProcessingModal);
+
+            form?.addEventListener("submit", event => {
+                const submitter = event.submitter;
+                if (submitter && submitter.id === "finalSaveButton") {
+                    showProcessingModal();
+                }
+            });
+
+            render();
+        })();
+    </script>
+}

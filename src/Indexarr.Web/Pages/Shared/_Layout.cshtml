@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+@using Indexarr.Web.Localization
+@inject Indexarr.Web.Services.AutomationRuntimeState AutomationRuntime
+@{
+    var currentLanguage = (string?)ViewData["CurrentLanguage"] ?? "it";
+    string T(string key) => UiTextCatalog.Get(currentLanguage, key);
+    (string Label, string Value) FormatAutomationMessage(string? message)
+    {
+        if (string.IsNullOrWhiteSpace(message))
+        {
+            return (T("SidebarAutomationMessage"), "-");
+        }
+
+        var separatorIndex = message.IndexOf(':');
+        if (separatorIndex >= 0)
+        {
+            var detail = message[(separatorIndex + 1)..].Trim().TrimEnd('.');
+            if (detail.Contains("OK", StringComparison.OrdinalIgnoreCase)
+                && detail.Contains("KO", StringComparison.OrdinalIgnoreCase))
+            {
+                // La label diventa direttamente "Stato indexer:" invece di "Messaggio:".
+                return (T("SidebarAutomationIndexerState"), detail);
+            }
+        }
+
+        return (T("SidebarAutomationMessage"), message);
+    }
+
+    var currentPage = ViewContext.RouteData.Values["page"]?.ToString() ?? string.Empty;
+    var isAuthenticated = User.Identity?.IsAuthenticated == true;
+    var automationMessageInfo = AutomationRuntime.LastStartedAtUtc is null && AutomationRuntime.LastCompletedAtUtc is null
+        ? (T("SidebarAutomationMessage"), T("SidebarAutomationNoRunsYet"))
+        : FormatAutomationMessage(AutomationRuntime.LastMessage);
+}
+<html lang="@currentLanguage">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Indexarr</title>
+    <script type="importmap"></script>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/Indexarr.Web.styles.css" asp-append-version="true" />
+</head>
+<body>
+    @if (currentPage == "/Login")
+    {
+        <main role="main" class="app-main">
+            @RenderBody()
+        </main>
+    }
+    else
+    {
+        <div class="app-shell">
+            <aside class="app-sidebar">
+                <div class="sidebar-brand">
+                    <img src="~/images/indexarr_logo.png" alt="Indexarr" class="brand-logo" />
+                    <a class="sidebar-title" asp-page="/Index">Indexarr</a>
+                </div>
+
+                <section class="sidebar-status-card">
+                    <span class="sidebar-status-label">@T("SidebarAutomationTitle")</span>
+                    <strong class="sidebar-status-value @(AutomationRuntime.IsRunning ? "is-running" : AutomationRuntime.IsEnabled ? "is-idle" : "is-disabled")"
+                            data-role="automation-status-label">
+                        @(AutomationRuntime.IsRunning
+                            ? T("SidebarAutomationInProgress")
+                            : AutomationRuntime.IsEnabled
+                                ? T("SidebarAutomationNextRun")
+                                : T("SidebarAutomationNoSchedule"))
+                    </strong>
+                    <div class="sidebar-automation-hero"
+                         id="automationCountdown"
+                         data-enabled="@AutomationRuntime.IsEnabled.ToString().ToLowerInvariant()"
+                         data-running="@AutomationRuntime.IsRunning.ToString().ToLowerInvariant()"
+                         data-interval-seconds="@(Math.Max(1, AutomationRuntime.IntervalMinutes) * 60)"
+                         data-next-run-utc="@AutomationRuntime.NextScheduledAtUtc?.ToString("O")"
+                         data-label-next="@T("SidebarAutomationNextRun")"
+                         data-label-due="@T("SidebarAutomationDueNow")"
+                         data-label-running="@T("SidebarAutomationInProgress")"
+                         data-label-disabled="@T("SidebarAutomationNoSchedule")"
+                         data-label-message="@T("SidebarAutomationMessage")"
+                         data-label-indexer-state="@T("SidebarAutomationIndexerState")"
+                         data-label-no-runs="@T("SidebarAutomationNoRunsYet")"
+                         data-status-endpoint="/api/automation-status">
+                        <div class="automation-ring">
+                            <div class="automation-ring-core">
+                                <span class="automation-ring-value" data-role="countdown-value">--:--</span>
+                            </div>
+                        </div>
+                        <div class="automation-progress-track" aria-hidden="true">
+                            <span class="automation-progress-bar" data-role="countdown-bar"></span>
+                        </div>
+                    </div>
+                    <div class="config-lines">
+                        <span><strong>@T("SidebarAutomationLastStart"):</strong> <span data-role="last-start">@(AutomationRuntime.LastStartedAtUtc?.ToLocalTime().ToString("g") ?? "-")</span></span>
+                        <span><strong>@T("SidebarAutomationLastEnd"):</strong> <span data-role="last-end">@(AutomationRuntime.LastCompletedAtUtc?.ToLocalTime().ToString("g") ?? "-")</span></span>
+                        <span><strong data-role="message-label">@(automationMessageInfo.Item1):</strong> <span data-role="message-value">@(automationMessageInfo.Item2)</span></span>
+                    </div>
+                </section>
+
+                <nav class="sidebar-nav">
+                    <a class="sidebar-link @(currentPage == "/Index" ? "is-active" : string.Empty)" asp-page="/Index">@T("NavDashboard")</a>
+                    <a class="sidebar-link @(currentPage == "/Settings" ? "is-active" : string.Empty)" asp-page="/Settings">@T("NavSettings")</a>
+                </nav>
+
+                <div class="sidebar-auth">
+                    @if (isAuthenticated)
+                    {
+                        <p>@User.Identity?.Name</p>
+                        <form method="post" asp-page="/Login" asp-page-handler="Logout">
+                            <button type="submit" class="btn btn-outline-light w-100">@T("NavLogout")</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <p>@T("ReadonlyDashboardNote")</p>
+                        <a class="btn btn-primary w-100" asp-page="/Login" asp-route-returnUrl="@Url.Page("/Settings")">@T("NavLogin")</a>
+                    }
+                </div>
+            </aside>
+
+            <div class="app-main">
+                <main role="main" class="app-content">
+                    @RenderBody()
+                </main>
+
+                <footer class="footer text-muted">
+                    <div class="container-fluid px-0">
+                        @T("Footer")
+                    </div>
+                </footer>
+            </div>
+        </div>
+    }
+
+    <div class="processing-modal" id="globalBusyOverlay" aria-hidden="true">
+        <div class="processing-modal-card" role="alertdialog" aria-modal="true" aria-labelledby="globalBusyTitle">
+            <div class="processing-spinner"></div>
+            <h2 id="globalBusyTitle">@T("BusyTitle")</h2>
+            <p>@T("BusyText")</p>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

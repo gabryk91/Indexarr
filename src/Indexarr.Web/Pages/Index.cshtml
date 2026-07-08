@@ -1,0 +1,302 @@
+@page
+@using Indexarr.Web.Localization
+@model IndexModel
+@{
+    ViewData["Title"] = UiTextCatalog.Get(Model.CurrentLanguage, "NavDashboard");
+    string T(string key) => UiTextCatalog.Get(Model.CurrentLanguage, key);
+}
+
+<section class="hero">
+    <div class="hero-copy">
+        <h1>@T("IndexTitle")</h1>
+        <p class="lead">@T("IndexLead")</p>
+        <div class="hero-actions">
+            @if (Model.CanManage)
+            {
+                <form method="post" asp-page-handler="RunHealthCheck" data-long-operation="true">
+                    <input type="hidden" name="StatusFilter" value="@Model.StatusFilter" />
+                    <input type="hidden" name="ProtocolFilter" value="@Model.ProtocolFilter" />
+                    <input type="hidden" name="AuditDateFilter" value="@Model.Dashboard.Filters.AuditDate" />
+                    <input type="hidden" name="AuditActionFilter" value="@Model.Dashboard.Filters.AuditAction" />
+                    <input type="hidden" name="AuditResultFilter" value="@Model.Dashboard.Filters.AuditResult" />
+                    <button type="submit" class="btn btn-primary">@T("RunHealthCheck")</button>
+                </form>
+                <form method="post" asp-page-handler="RunAutoAdd" data-long-operation="true">
+                    <input type="hidden" name="StatusFilter" value="@Model.StatusFilter" />
+                    <input type="hidden" name="ProtocolFilter" value="@Model.ProtocolFilter" />
+                    <input type="hidden" name="AuditDateFilter" value="@Model.Dashboard.Filters.AuditDate" />
+                    <input type="hidden" name="AuditActionFilter" value="@Model.Dashboard.Filters.AuditAction" />
+                    <input type="hidden" name="AuditResultFilter" value="@Model.Dashboard.Filters.AuditResult" />
+                    <button type="submit" class="btn btn-outline-light">@T("RunAutoAdd")</button>
+                </form>
+            }
+            else
+            {
+                <a class="btn btn-primary" asp-page="/Login" asp-route-returnUrl="@Url.Page("/Settings")">@T("LoginToManage")</a>
+            }
+        </div>
+    </div>
+</section>
+
+@if (!string.IsNullOrWhiteSpace(Model.FlashMessage))
+{
+    <section class="flash-banner">@Model.FlashMessage</section>
+}
+
+<section class="metric-grid">
+    <article class="metric-card">
+        <span class="metric-label">@T("ConnectionDraft")</span>
+        <div class="config-lines">
+            <span><strong>@T("Mode"):</strong> @(Model.SetupDraft?.Mode ?? "-")</span>
+            <span><strong>@T("FailureThreshold"):</strong> @(Model.SetupDraft?.FailureThreshold.ToString() ?? "-")</span>
+            <span><strong>@T("Timezone"):</strong> @(Model.SetupDraft?.Timezone ?? "-")</span>
+            <span><strong>@T("Language"):</strong> @(Model.SetupDraft?.Language?.ToUpperInvariant() ?? "IT")</span>
+        </div>
+    </article>
+    <article class="metric-card">
+        <span class="metric-label">@T("IndexersTitle")</span>
+        <div class="metric-split">
+            <div>
+                <span class="metric-inline-label">OK</span>
+                <strong class="metric-value">@Model.Dashboard.HealthyIndexers</strong>
+            </div>
+            <div>
+                <span class="metric-inline-label">FAIL</span>
+                <strong class="metric-value">@Model.Dashboard.FailedIndexers</strong>
+            </div>
+        </div>
+    </article>
+    <article class="metric-card">
+        <span class="metric-label">@T("LastCheck")</span>
+        <strong class="metric-value">@(Model.Dashboard.LastRunAtUtc?.ToLocalTime().ToString("g") ?? "-")</strong>
+        <p>@T("SchedulerInfo")</p>
+    </article>
+</section>
+
+<section class="info-grid">
+    <article class="info-card">
+        <h2>@T("SummaryTitle")</h2>
+        <div class="config-lines">
+            <span><strong>@T("MetricProwlarr"):</strong> @(Model.Dashboard.Reachable ? T("Reachable") : T("Unreachable"))</span>
+            <span><strong>@T("ProwlarrUrl"):</strong> @(Model.SetupDraft?.ProwlarrUrl ?? "-")</span>
+            <span><strong>@T("LastCheck"):</strong> @(Model.Dashboard.LastRunAtUtc?.ToLocalTime().ToString("g") ?? "-")</span>
+            @if (Model.Dashboard.Reachable)
+            {
+                <span><strong>@T("Instance"):</strong> @Model.Dashboard.InstanceName</span>
+                <span><strong>@T("Version"):</strong> @Model.Dashboard.Version</span>
+                <span><strong>@T("TotalIndexers"):</strong> @Model.Dashboard.TotalIndexers</span>
+                <span><strong>@T("EnabledIndexers"):</strong> @Model.Dashboard.EnabledIndexers</span>
+            }
+            else
+            {
+                <span><strong>@T("Error"):</strong> @(string.IsNullOrWhiteSpace(Model.Dashboard.ErrorMessage) ? "-" : Model.Dashboard.ErrorMessage)</span>
+            }
+        </div>
+    </article>
+    <article class="info-card">
+        <h2>@T("ConfigurationReadonlyTitle")</h2>
+        <div class="config-lines">
+            <span><strong>@T("Mode"):</strong> @(Model.SetupDraft?.Mode ?? "-")</span>
+            <span><strong>@T("FailureThreshold"):</strong> @(Model.SetupDraft?.FailureThreshold.ToString() ?? "-")</span>
+            <span><strong>@T("Timezone"):</strong> @(Model.SetupDraft?.Timezone ?? "-")</span>
+            <span><strong>@T("Language"):</strong> @(Model.SetupDraft?.Language?.ToUpperInvariant() ?? "IT")</span>
+            <span><strong>@T("BackupBeforeChanges"):</strong> @(Model.SetupDraft?.BackupBeforeChanges == true ? T("Yes") : T("No"))</span>
+            <span><strong>@T("AutoDisable"):</strong> @(Model.SetupDraft?.AutoDisableFailedIndexers == true ? T("Yes") : T("No"))</span>
+            <span><strong>@T("AutoAdd"):</strong> @(Model.SetupDraft?.AutoAddPublicIndexers == true ? T("Yes") : T("No"))</span>
+        </div>
+    </article>
+</section>
+
+<section class="table-card">
+    <div class="table-card-header">
+        <h2>@T("IndexersTitle")</h2>
+        <form method="get" class="filter-form">
+            <div>
+                <label for="statusFilter" class="metric-inline-label">@T("StatusFilter")</label>
+                <select id="statusFilter" name="StatusFilter" class="form-select">
+                    <option value="all" selected="@(Model.Dashboard.Filters.Status == "all")">@T("FilterAll")</option>
+                    <option value="ok" selected="@(Model.Dashboard.Filters.Status == "ok")">OK</option>
+                    <option value="fail" selected="@(Model.Dashboard.Filters.Status == "fail")">FAIL</option>
+                    <option value="disabled" selected="@(Model.Dashboard.Filters.Status == "disabled")">@T("Disabled")</option>
+                    <option value="blocked" selected="@(Model.Dashboard.Filters.Status == "blocked")">@T("Blocked")</option>
+                </select>
+            </div>
+            <div>
+                <label for="protocolFilter" class="metric-inline-label">@T("ProtocolFilter")</label>
+                <select id="protocolFilter" name="ProtocolFilter" class="form-select">
+                    <option value="all" selected="@(Model.Dashboard.Filters.Protocol == "all")">@T("FilterAll")</option>
+                    @foreach (var protocol in Model.Dashboard.AvailableProtocols)
+                    {
+                        <option value="@protocol.ToLowerInvariant()" selected="@(Model.Dashboard.Filters.Protocol == protocol.ToLowerInvariant())">@protocol</option>
+                    }
+                </select>
+            </div>
+            <button type="submit" class="btn btn-outline-light">@T("ApplyFilters")</button>
+        </form>
+    </div>
+
+    @if (!Model.CanManage)
+    {
+        <p class="table-empty">@T("ReadonlyDashboardNote") <a asp-page="/Login" asp-route-returnUrl="@Url.Page("/Settings")">@T("NavLogin")</a>.</p>
+    }
+
+    @if (Model.Dashboard.Indexers.Count == 0)
+    {
+        <p class="table-empty">@T("NoIndexers")</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-dark align-middle">
+                <thead>
+                    <tr>
+                        <th>@T("Name")</th>
+                        <th>@T("Protocol")</th>
+                        <th>@T("Implementation")</th>
+                        <th>@T("Result")</th>
+                        <th>@T("Trend")</th>
+                        <th>@T("LastCheck")</th>
+                        <th>@T("ConsecutiveFails")</th>
+                        <th>@T("Latency")</th>
+                        <th>@T("Error")</th>
+                        <th>@T("Actions")</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var indexer in Model.Dashboard.Indexers)
+                    {
+                        <tr>
+                            <td>@indexer.Name</td>
+                            <td>@indexer.Protocol</td>
+                            <td>@indexer.Implementation</td>
+                            <td>@indexer.Result</td>
+                            <td><span class="trend-badge trend-@indexer.Trend.ToLowerInvariant()">@T($"Trend{indexer.Trend}")</span></td>
+                            <td>@(indexer.LastCheckedAtUtc?.ToLocalTime().ToString("g") ?? "-")</td>
+                            <td>@indexer.ConsecutiveFailures</td>
+                            <td>@indexer.LatencyMs ms</td>
+                            <td>@(string.IsNullOrWhiteSpace(indexer.Error) ? "-" : indexer.Error)</td>
+                            <td>
+                                @if (Model.CanManage)
+                                {
+                                    <div class="indexer-action-stack">
+                                        @if (indexer.IsBlocked && indexer.BlockedIndexerId.HasValue)
+                                        {
+                                            <form method="post" asp-page-handler="UnblockIndexer" class="inline-action-form" data-long-operation="true">
+                                                <input type="hidden" name="blockedIndexerId" value="@indexer.BlockedIndexerId.Value" />
+                                                <input type="hidden" name="StatusFilter" value="@Model.StatusFilter" />
+                                                <input type="hidden" name="ProtocolFilter" value="@Model.ProtocolFilter" />
+                                                <input type="hidden" name="AuditDateFilter" value="@Model.Dashboard.Filters.AuditDate" />
+                                                <input type="hidden" name="AuditActionFilter" value="@Model.Dashboard.Filters.AuditAction" />
+                                                <input type="hidden" name="AuditResultFilter" value="@Model.Dashboard.Filters.AuditResult" />
+                                                <button type="submit" class="btn btn-sm btn-warning">
+                                                    @T("UnblockAction")
+                                                </button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <form method="post" asp-page-handler="ToggleIndexer" class="inline-action-form" data-long-operation="true">
+                                                <input type="hidden" name="indexerId" value="@indexer.Id" />
+                                                <input type="hidden" name="enabled" value="@(indexer.Enabled ? "false" : "true")" />
+                                                <input type="hidden" name="StatusFilter" value="@Model.StatusFilter" />
+                                                <input type="hidden" name="ProtocolFilter" value="@Model.ProtocolFilter" />
+                                                <input type="hidden" name="AuditDateFilter" value="@Model.Dashboard.Filters.AuditDate" />
+                                                <input type="hidden" name="AuditActionFilter" value="@Model.Dashboard.Filters.AuditAction" />
+                                                <input type="hidden" name="AuditResultFilter" value="@Model.Dashboard.Filters.AuditResult" />
+                                                <button type="submit" class="btn btn-sm @(indexer.Enabled ? "btn-outline-light" : "btn-secondary")">
+                                                    @(indexer.Enabled ? T("DisableAction") : T("EnableAction"))
+                                                </button>
+                                            </form>
+                                            <form method="post" asp-page-handler="BlockIndexer" class="inline-action-form" data-long-operation="true">
+                                                <input type="hidden" name="indexerId" value="@indexer.Id" />
+                                                <input type="hidden" name="StatusFilter" value="@Model.StatusFilter" />
+                                                <input type="hidden" name="ProtocolFilter" value="@Model.ProtocolFilter" />
+                                                <input type="hidden" name="AuditDateFilter" value="@Model.Dashboard.Filters.AuditDate" />
+                                                <input type="hidden" name="AuditActionFilter" value="@Model.Dashboard.Filters.AuditAction" />
+                                                <input type="hidden" name="AuditResultFilter" value="@Model.Dashboard.Filters.AuditResult" />
+                                                <button type="submit" class="btn btn-sm btn-danger">
+                                                    @T("BlockAction")
+                                                </button>
+                                            </form>
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="muted-chip">@T("LoginRequiredShort")</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+<section class="table-card">
+    <div class="table-card-header">
+        <h2>@T("AuditLogTitle")</h2>
+        <form method="get" class="filter-form">
+            <div>
+                <label for="auditDateFilter" class="metric-inline-label">@T("AuditDateFilter")</label>
+                <input id="auditDateFilter" name="AuditDateFilter" type="date" value="@Model.Dashboard.Filters.AuditDate" class="form-control" />
+            </div>
+            <div>
+                <label for="auditActionFilter" class="metric-inline-label">@T("AuditActionFilter")</label>
+                <select id="auditActionFilter" name="AuditActionFilter" class="form-select">
+                    <option value="all" selected="@(Model.Dashboard.Filters.AuditAction == "all")">@T("FilterAll")</option>
+                    @foreach (var action in Model.Dashboard.AvailableAuditActions)
+                    {
+                        <option value="@action" selected="@(Model.Dashboard.Filters.AuditAction == action)">@action</option>
+                    }
+                </select>
+            </div>
+            <div>
+                <label for="auditResultFilter" class="metric-inline-label">@T("AuditResultFilter")</label>
+                <select id="auditResultFilter" name="AuditResultFilter" class="form-select">
+                    <option value="all" selected="@(Model.Dashboard.Filters.AuditResult == "all")">@T("FilterAll")</option>
+                    <option value="ok" selected="@(Model.Dashboard.Filters.AuditResult == "ok")">OK</option>
+                    <option value="fail" selected="@(Model.Dashboard.Filters.AuditResult == "fail")">FAIL</option>
+                </select>
+            </div>
+            <input type="hidden" name="StatusFilter" value="@Model.StatusFilter" />
+            <input type="hidden" name="ProtocolFilter" value="@Model.ProtocolFilter" />
+            <button type="submit" class="btn btn-outline-light">@T("ApplyFilters")</button>
+        </form>
+    </div>
+    @if (Model.Dashboard.AuditLogs.Count == 0)
+    {
+        <p class="table-empty">@T("NoAuditLogs")</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-dark align-middle audit-table">
+                <thead>
+                    <tr>
+                        <th>@T("When")</th>
+                        <th>@T("Action")</th>
+                        <th>@T("Mode")</th>
+                        <th>@T("Name")</th>
+                        <th>@T("Result")</th>
+                        <th>@T("Details")</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var entry in Model.Dashboard.AuditLogs)
+                    {
+                        <tr>
+                            <td>@entry.CreatedAtUtc.ToLocalTime().ToString("g")</td>
+                            <td>@entry.Action</td>
+                            <td>@entry.Mode</td>
+                            <td>@(string.IsNullOrWhiteSpace(entry.IndexerName) ? "-" : entry.IndexerName)</td>
+                            <td>@(entry.Succeeded ? "OK" : "FAIL")</td>
+                            <td class="audit-details-cell">@entry.Details</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>

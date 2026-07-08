@@ -1,0 +1,12 @@
+src/Indexarr.Web/config/setup-draft.json
+src/Indexarr.Web/config/Indexarr.db
+src/Indexarr.Web/config/Indexarr.db-shm
+src/Indexarr.Web/config/Indexarr.db-wal
+src/Indexarr.Web/backups/
+src/Indexarr.Web/bin/
+src/Indexarr.Web/obj/
+src/Indexarr.Web/*.csproj.user
+.vs/
+.appdata/
+.dotnet/
+.nuget/

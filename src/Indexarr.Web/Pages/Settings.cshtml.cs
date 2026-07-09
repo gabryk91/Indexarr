@@ -178,7 +178,7 @@ public sealed class SettingsModel : PageModel
         ViewData["CurrentLanguage"] = CurrentLanguage;
         Tab = "integrations";
         ResetSelectionData(Input);
-        var result = await _connectionService.TestAsync(Input.ProwlarrUrl, Input.ProwlarrApiKey, HttpContext.RequestAborted);
+        var result = await _connectionService.TestAsync(Input.ProwlarrUrl, Input.ProwlarrApiKey, CurrentLanguage, HttpContext.RequestAborted);
         FlashMessage = result.Success ? T("ConnectionOk") : $"{T("ConnectionFailedWithDetails")} {result.Message}";
         return Page();
     }
@@ -596,7 +596,7 @@ public sealed class SettingsModel : PageModel
             return issues;
         }
 
-        var result = await _connectionService.TestAsync(configuration.ProwlarrUrl, configuration.ProwlarrApiKey, HttpContext.RequestAborted);
+        var result = await _connectionService.TestAsync(configuration.ProwlarrUrl, configuration.ProwlarrApiKey, CurrentLanguage, HttpContext.RequestAborted);
         if (!result.Success)
         {
             issues.Add(T("AutomationValidationConnectionFailed"));

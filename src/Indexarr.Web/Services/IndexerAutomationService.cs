@@ -41,7 +41,7 @@ public sealed class IndexerAutomationService
             return new HealthCheckRunResult
             {
                 Reachable = false,
-                ErrorMessage = "Configuration not found.",
+                ErrorMessage = T(null, "ConfigurationNotFound"),
                 ExecutedAtUtc = DateTimeOffset.UtcNow
             };
         }
@@ -103,7 +103,7 @@ public sealed class IndexerAutomationService
             return new AutoAddRunResult
             {
                 Reachable = false,
-                Message = "Configuration not found."
+                Message = T(null, "ConfigurationNotFound")
             };
         }
 
@@ -135,7 +135,7 @@ public sealed class IndexerAutomationService
         var configuration = await _configurationService.GetAsync(cancellationToken);
         if (configuration is null)
         {
-            return new ProwlarrIndexerUpdateResult { Success = false, Message = "Configuration not found." };
+            return new ProwlarrIndexerUpdateResult { Success = false, Message = T(null, "ConfigurationNotFound") };
         }
 
         try
@@ -192,7 +192,7 @@ public sealed class IndexerAutomationService
         var configuration = await _configurationService.GetAsync(cancellationToken);
         if (configuration is null)
         {
-            return new ProwlarrIndexerUpdateResult { Success = false, Message = "Configuration not found." };
+            return new ProwlarrIndexerUpdateResult { Success = false, Message = T(null, "ConfigurationNotFound") };
         }
 
         try
@@ -208,7 +208,7 @@ public sealed class IndexerAutomationService
             var payload = JsonNode.Parse(record.PayloadJson)?.AsObject();
             if (payload is null)
             {
-                return new ProwlarrIndexerUpdateResult { Success = false, Message = "Invalid indexer payload." };
+                return new ProwlarrIndexerUpdateResult { Success = false, Message = T(configuration.Language, "InvalidIndexerPayload") };
             }
 
             var delete = await _apiClient.DeleteIndexerAsync(configuration, indexerId, cancellationToken);
@@ -254,7 +254,7 @@ public sealed class IndexerAutomationService
             return new ProwlarrIndexerUpdateResult
             {
                 Success = true,
-                Message = "Indexer blocked.",
+                Message = T(configuration.Language, "IndexerBlocked"),
                 ResponseJson = delete.ResponseJson
             };
         }
@@ -270,13 +270,13 @@ public sealed class IndexerAutomationService
         var configuration = await _configurationService.GetAsync(cancellationToken);
         if (configuration is null)
         {
-            return new ProwlarrIndexerUpdateResult { Success = false, Message = "Configuration not found." };
+            return new ProwlarrIndexerUpdateResult { Success = false, Message = T(null, "ConfigurationNotFound") };
         }
 
         var blocked = await _dbContext.BlockedIndexers.SingleOrDefaultAsync(x => x.Id == blockedIndexerId, cancellationToken);
         if (blocked is null)
         {
-            return new ProwlarrIndexerUpdateResult { Success = false, Message = "Blocked indexer not found." };
+            return new ProwlarrIndexerUpdateResult { Success = false, Message = T(configuration.Language, "BlockedIndexerNotFound") };
         }
 
         try
@@ -284,7 +284,7 @@ public sealed class IndexerAutomationService
             var payload = JsonNode.Parse(blocked.PayloadJson)?.AsObject();
             if (payload is null)
             {
-                return new ProwlarrIndexerUpdateResult { Success = false, Message = "Invalid blocked indexer payload." };
+                return new ProwlarrIndexerUpdateResult { Success = false, Message = T(configuration.Language, "InvalidBlockedIndexerPayload") };
             }
 
             var create = await _apiClient.CreateIndexerAsync(configuration, payload, cancellationToken);
@@ -309,7 +309,7 @@ public sealed class IndexerAutomationService
             return new ProwlarrIndexerUpdateResult
             {
                 Success = true,
-                Message = "Indexer unblocked and recreated.",
+                Message = T(configuration.Language, "IndexerUnblockedRecreated"),
                 ResponseJson = create.ResponseJson
             };
         }
@@ -632,7 +632,7 @@ public sealed class IndexerAutomationService
                 CandidateCount = candidates.Count,
                 AddedCount = addedCount,
                 FailedCount = failedCount,
-                Message = $"Processed {candidates.Count} candidates: {addedCount} added, {failedCount} failed."
+                Message = string.Format(T(configuration.Language, "AutoAddProcessedSummary"), candidates.Count, addedCount, failedCount)
             };
         }
         catch (Exception ex)
@@ -1501,4 +1501,7 @@ public sealed class IndexerAutomationService
         var suffix = fieldName[(index + marker.Length)..];
         return int.TryParse(suffix, out categoryId) && categoryId > 0;
     }
+
+    private static string T(string? language, string key)
+        => Indexarr.Web.Localization.UiTextCatalog.Get(language, key);
 }

@@ -83,7 +83,7 @@ public sealed class SetupModel : PageModel
             return Page();
         }
 
-        var result = await _connectionService.TestAsync(Input.ProwlarrUrl, Input.ProwlarrApiKey, HttpContext.RequestAborted);
+        var result = await _connectionService.TestAsync(Input.ProwlarrUrl, Input.ProwlarrApiKey, CurrentLanguage, HttpContext.RequestAborted);
         ConnectionTested = true;
         ConnectionSucceeded = result.Success;
         ConnectionMessage = result.Message;
@@ -122,7 +122,7 @@ public sealed class SetupModel : PageModel
             return Page();
         }
 
-        var result = await _connectionService.TestAsync(Input.ProwlarrUrl, Input.ProwlarrApiKey, HttpContext.RequestAborted);
+        var result = await _connectionService.TestAsync(Input.ProwlarrUrl, Input.ProwlarrApiKey, CurrentLanguage, HttpContext.RequestAborted);
         ConnectionTested = true;
         ConnectionSucceeded = result.Success;
         ConnectionMessage = result.Message;

@@ -1,4 +1,5 @@
 using System.Net.Http.Headers;
+using Indexarr.Web.Localization;
 
 namespace Indexarr.Web.Services;
 
@@ -11,11 +12,11 @@ public sealed class ProwlarrConnectionService
         _httpClientFactory = httpClientFactory;
     }
 
-    public async Task<ProwlarrConnectionResult> TestAsync(string url, string apiKey, CancellationToken cancellationToken = default)
+    public async Task<ProwlarrConnectionResult> TestAsync(string url, string apiKey, string? language = null, CancellationToken cancellationToken = default)
     {
         if (!Uri.TryCreate(url, UriKind.Absolute, out var baseUri))
         {
-            return new(false, "Invalid Prowlarr URL.");
+            return new(false, UiTextCatalog.Get(language, "InvalidProwlarrUrl"));
         }
 
         try

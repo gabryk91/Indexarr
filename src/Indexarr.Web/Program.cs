@@ -103,7 +103,7 @@ app.Use(async (context, next) =>
             return;
         }
 
-        var connection = await connectionService.TestAsync(draft.ProwlarrUrl, draft.ProwlarrApiKey, context.RequestAborted);
+        var connection = await connectionService.TestAsync(draft.ProwlarrUrl, draft.ProwlarrApiKey, draft.Language, context.RequestAborted);
         if (!connection.Success && context.User.Identity?.IsAuthenticated == true)
         {
             context.Response.Redirect("/Setup?reason=prowlarr-unreachable");
@@ -138,7 +138,7 @@ app.MapGet("/readyz", async (AppConfigurationService configurationService, Prowl
         return Results.Json(new { status = "not-ready", reason = "configuration-missing" }, statusCode: StatusCodes.Status503ServiceUnavailable);
     }
 
-    var result = await connectionService.TestAsync(configuration.ProwlarrUrl, configuration.ProwlarrApiKey, cancellationToken);
+    var result = await connectionService.TestAsync(configuration.ProwlarrUrl, configuration.ProwlarrApiKey, configuration.Language, cancellationToken);
     return result.Success
         ? Results.Ok(new { status = "ready" })
         : Results.Json(new { status = "not-ready", reason = result.Message }, statusCode: StatusCodes.Status503ServiceUnavailable);

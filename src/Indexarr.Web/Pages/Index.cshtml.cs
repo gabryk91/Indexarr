@@ -75,10 +75,11 @@ public sealed class IndexModel : PageModel
             return RedirectToPage("/Login", new { returnUrl = Url.Page("/Index", BuildRouteValues()) });
         }
 
+        SetupDraft = await _configurationService.GetAsync(HttpContext.RequestAborted);
         var result = await _automationService.RunHealthChecksAsync("manual-dashboard", HttpContext.RequestAborted);
         FlashMessage = result.Reachable
-            ? $"Health check completato: {result.HealthyIndexers} OK, {result.FailedIndexers} FAIL."
-            : $"Health check non riuscito: {result.ErrorMessage}";
+            ? string.Format(T("HealthCheckCompleted"), result.HealthyIndexers, result.FailedIndexers)
+            : string.Format(T("HealthCheckFailed"), result.ErrorMessage);
         return RedirectToPage(BuildRouteValues());
     }
 
@@ -89,10 +90,11 @@ public sealed class IndexModel : PageModel
             return RedirectToPage("/Login", new { returnUrl = Url.Page("/Index", BuildRouteValues()) });
         }
 
+        SetupDraft = await _configurationService.GetAsync(HttpContext.RequestAborted);
         var result = await _automationService.RunAutoAddAsync("manual-auto-add", HttpContext.RequestAborted);
         FlashMessage = result.Reachable
             ? result.Message
-            : $"Operazione non riuscita: {result.Message}";
+            : $"{T("OperationFailed")} {result.Message}";
         return RedirectToPage(BuildRouteValues());
     }
 
@@ -103,8 +105,9 @@ public sealed class IndexModel : PageModel
             return RedirectToPage("/Login", new { returnUrl = Url.Page("/Index", BuildRouteValues()) });
         }
 
+        SetupDraft = await _configurationService.GetAsync(HttpContext.RequestAborted);
         var result = await _automationService.SetIndexerEnabledAsync(indexerId, enabled, HttpContext.RequestAborted);
-        FlashMessage = result.Success ? result.Message : $"Operazione non riuscita: {result.Message}";
+        FlashMessage = result.Success ? result.Message : $"{T("OperationFailed")} {result.Message}";
         return RedirectToPage(BuildRouteValues());
     }
 
@@ -115,8 +118,9 @@ public sealed class IndexModel : PageModel
             return RedirectToPage("/Login", new { returnUrl = Url.Page("/Index", BuildRouteValues()) });
         }
 
+        SetupDraft = await _configurationService.GetAsync(HttpContext.RequestAborted);
         var result = await _automationService.BlockIndexerAsync(indexerId, HttpContext.RequestAborted);
-        FlashMessage = result.Success ? result.Message : $"Operazione non riuscita: {result.Message}";
+        FlashMessage = result.Success ? result.Message : $"{T("OperationFailed")} {result.Message}";
         return RedirectToPage(BuildRouteValues());
     }
 
@@ -127,10 +131,13 @@ public sealed class IndexModel : PageModel
             return RedirectToPage("/Login", new { returnUrl = Url.Page("/Index", BuildRouteValues()) });
         }
 
+        SetupDraft = await _configurationService.GetAsync(HttpContext.RequestAborted);
         var result = await _automationService.UnblockIndexerAsync(blockedIndexerId, HttpContext.RequestAborted);
-        FlashMessage = result.Success ? result.Message : $"Operazione non riuscita: {result.Message}";
+        FlashMessage = result.Success ? result.Message : $"{T("OperationFailed")} {result.Message}";
         return RedirectToPage(BuildRouteValues());
     }
+
+    private string T(string key) => UiTextCatalog.Get(CurrentLanguage, key);
 
     private static string NormalizeStatusFilter(string? value)
         => value?.ToLowerInvariant() switch

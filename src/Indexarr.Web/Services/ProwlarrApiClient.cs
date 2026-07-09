@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Indexarr.Web.Localization;
 using Indexarr.Web.Models;
 
 namespace Indexarr.Web.Services;
@@ -86,7 +87,7 @@ public sealed class ProwlarrApiClient
         return new ProwlarrIndexerUpdateResult
         {
             Success = response.IsSuccessStatusCode,
-            Message = response.IsSuccessStatusCode ? "Indexer updated." : BuildError(response.StatusCode, content),
+            Message = response.IsSuccessStatusCode ? T(configuration.Language, "IndexerUpdated") : BuildError(response.StatusCode, content),
             ResponseJson = content
         };
     }
@@ -98,7 +99,7 @@ public sealed class ProwlarrApiClient
         var node = JsonNode.Parse(payload)?.AsObject();
         if (node is null)
         {
-            return new ProwlarrIndexerUpdateResult { Success = false, Message = "Invalid indexer payload." };
+            return new ProwlarrIndexerUpdateResult { Success = false, Message = T(configuration.Language, "InvalidIndexerPayload") };
         }
 
         node["enable"] = enabled;
@@ -113,7 +114,9 @@ public sealed class ProwlarrApiClient
         return new ProwlarrIndexerUpdateResult
         {
             Success = response.IsSuccessStatusCode,
-            Message = response.IsSuccessStatusCode ? $"Indexer {(enabled ? "enabled" : "disabled")}." : BuildError(response.StatusCode, content),
+            Message = response.IsSuccessStatusCode
+                ? T(configuration.Language, enabled ? "IndexerEnabled" : "IndexerDisabled")
+                : BuildError(response.StatusCode, content),
             ResponseJson = content
         };
     }
@@ -283,7 +286,7 @@ public sealed class ProwlarrApiClient
         return new ProwlarrIndexerUpdateResult
         {
             Success = response.IsSuccessStatusCode,
-            Message = response.IsSuccessStatusCode ? "Indexer created." : BuildError(response.StatusCode, content),
+            Message = response.IsSuccessStatusCode ? T(configuration.Language, "IndexerCreated") : BuildError(response.StatusCode, content),
             ResponseJson = content
         };
     }
@@ -298,7 +301,7 @@ public sealed class ProwlarrApiClient
         return new ProwlarrIndexerUpdateResult
         {
             Success = response.IsSuccessStatusCode,
-            Message = response.IsSuccessStatusCode ? "Indexer deleted." : BuildError(response.StatusCode, content),
+            Message = response.IsSuccessStatusCode ? T(configuration.Language, "IndexerDeleted") : BuildError(response.StatusCode, content),
             ResponseJson = content
         };
     }
@@ -627,4 +630,7 @@ public sealed class ProwlarrApiClient
             || string.Equals(propertyName, "error", StringComparison.OrdinalIgnoreCase)
             || string.Equals(propertyName, "errorMessage", StringComparison.OrdinalIgnoreCase)
             || string.Equals(propertyName, "propertyName", StringComparison.OrdinalIgnoreCase);
+
+    private static string T(string? language, string key)
+        => UiTextCatalog.Get(language, key);
 }

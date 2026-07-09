@@ -95,10 +95,20 @@ public sealed class IndexerAutomationHostedService : BackgroundService
         {
             using var scope = _scopeFactory.CreateScope();
             var service = scope.ServiceProvider.GetRequiredService<IndexerAutomationService>();
-            var result = await service.RunHealthChecksAsync(trigger, cancellationToken);
-            _runtimeState.Complete(result.Reachable, result.Reachable
-                ? $"{trigger}: {result.HealthyIndexers} OK, {result.FailedIndexers} KO."
-                : $"{trigger}: {result.ErrorMessage}");
+            var healthCheckResult = await service.RunHealthChecksAsync(trigger, cancellationToken);
+            if (!healthCheckResult.Reachable)
+            {
+                _runtimeState.Complete(false, $"{trigger}: {healthCheckResult.ErrorMessage}");
+                return;
+            }
+
+            var autoAddResult = await service.RunAutoAddAsync(trigger, cancellationToken);
+            var succeeded = autoAddResult.Reachable;
+            var message = autoAddResult.Reachable
+                ? $"{trigger}: {healthCheckResult.HealthyIndexers} OK, {healthCheckResult.FailedIndexers} KO. Auto-add: {autoAddResult.Message}"
+                : $"{trigger}: {healthCheckResult.HealthyIndexers} OK, {healthCheckResult.FailedIndexers} KO. Auto-add failed: {autoAddResult.Message}";
+
+            _runtimeState.Complete(succeeded, message);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {

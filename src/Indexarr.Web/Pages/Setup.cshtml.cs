@@ -4,6 +4,7 @@ using Indexarr.Web.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.Extensions.Logging;
 
 namespace Indexarr.Web.Pages;
 
@@ -13,17 +14,20 @@ public sealed class SetupModel : PageModel
     private readonly ProwlarrConnectionService _connectionService;
     private readonly IndexerAutomationService _automationService;
     private readonly AuthService _authService;
+    private readonly ILogger<SetupModel> _logger;
 
     public SetupModel(
         AppConfigurationService configurationService,
         ProwlarrConnectionService connectionService,
         IndexerAutomationService automationService,
-        AuthService authService)
+        AuthService authService,
+        ILogger<SetupModel> logger)
     {
         _configurationService = configurationService;
         _connectionService = connectionService;
         _automationService = automationService;
         _authService = authService;
+        _logger = logger;
     }
 
     [BindProperty]
@@ -65,6 +69,8 @@ public sealed class SetupModel : PageModel
 
     public async Task<IActionResult> OnPostTestConnectionAsync()
     {
+        _logger.LogInformation("Setup test connection requested. Step={Step} Url={Url}", CurrentStep, Input.ProwlarrUrl);
+
         if (await _authService.HasUsersAsync(HttpContext.RequestAborted) && User.Identity?.IsAuthenticated != true)
         {
             return RedirectToPage("/Login", new { returnUrl = Url.Page("/Setup") });
@@ -76,6 +82,7 @@ public sealed class SetupModel : PageModel
         ValidateConnectionFields();
         if (!ModelState.IsValid)
         {
+            _logger.LogWarning("Setup test connection validation failed: {Errors}", DescribeModelState());
             return Page();
         }
 
@@ -86,7 +93,12 @@ public sealed class SetupModel : PageModel
 
         if (!result.Success)
         {
+            _logger.LogWarning("Setup test connection failed: {Message}", result.Message);
             ModelState.AddModelError(string.Empty, result.Message);
+        }
+        else
+        {
+            _logger.LogInformation("Setup test connection succeeded.");
         }
 
         return Page();
@@ -94,6 +106,8 @@ public sealed class SetupModel : PageModel
 
     public async Task<IActionResult> OnPostAsync()
     {
+        _logger.LogInformation("Setup save requested. Step={Step} Url={Url} Mode={Mode}", CurrentStep, Input.ProwlarrUrl, Input.Mode);
+
         if (await _authService.HasUsersAsync(HttpContext.RequestAborted) && User.Identity?.IsAuthenticated != true)
         {
             return RedirectToPage("/Login", new { returnUrl = Url.Page("/Setup") });
@@ -107,6 +121,7 @@ public sealed class SetupModel : PageModel
 
         if (!TryValidateModel(Input, nameof(Input)))
         {
+            _logger.LogWarning("Setup save validation failed: {Errors}", DescribeModelState());
             return Page();
         }
 
@@ -118,11 +133,13 @@ public sealed class SetupModel : PageModel
         if (!result.Success)
         {
             CurrentStep = 2;
+            _logger.LogWarning("Setup save aborted because Prowlarr test failed: {Message}", result.Message);
             ModelState.AddModelError(string.Empty, result.Message);
             return Page();
         }
 
         await _configurationService.SaveAsync(Input, HttpContext.RequestAborted);
+        _logger.LogInformation("Setup configuration saved successfully.");
         await _automationService.RunHealthChecksAsync("setup-complete", HttpContext.RequestAborted);
         SavedSuccessfully = true;
 
@@ -184,4 +201,10 @@ public sealed class SetupModel : PageModel
             ProwlarrUrl = posted.ProwlarrUrl,
             ProwlarrApiKey = posted.ProwlarrApiKey
         };
+
+    private string DescribeModelState()
+        => string.Join(" | ",
+            ModelState
+                .Where(entry => entry.Value is { Errors.Count: > 0 })
+                .SelectMany(entry => entry.Value!.Errors.Select(error => $"{entry.Key}: {error.ErrorMessage}")));
 }

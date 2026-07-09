@@ -332,6 +332,10 @@ a {
   box-shadow: 0 28px 80px rgba(0, 0, 0, 0.28);
 }
 
+.hero.hero-single-column {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .login-brand {
   display: flex;
   align-items: center;

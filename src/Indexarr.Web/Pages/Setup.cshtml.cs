@@ -12,20 +12,17 @@ public sealed class SetupModel : PageModel
 {
     private readonly AppConfigurationService _configurationService;
     private readonly ProwlarrConnectionService _connectionService;
-    private readonly IndexerAutomationService _automationService;
     private readonly AuthService _authService;
     private readonly ILogger<SetupModel> _logger;
 
     public SetupModel(
         AppConfigurationService configurationService,
         ProwlarrConnectionService connectionService,
-        IndexerAutomationService automationService,
         AuthService authService,
         ILogger<SetupModel> logger)
     {
         _configurationService = configurationService;
         _connectionService = connectionService;
-        _automationService = automationService;
         _authService = authService;
         _logger = logger;
     }
@@ -140,7 +137,6 @@ public sealed class SetupModel : PageModel
 
         await _configurationService.SaveAsync(Input, HttpContext.RequestAborted);
         _logger.LogInformation("Setup configuration saved successfully.");
-        await _automationService.RunHealthChecksAsync("setup-complete", HttpContext.RequestAborted);
         SavedSuccessfully = true;
 
         return RedirectToPage("/Index");

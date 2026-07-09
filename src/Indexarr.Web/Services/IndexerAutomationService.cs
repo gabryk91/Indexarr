@@ -60,8 +60,6 @@ public sealed class IndexerAutomationService
                 await ApplyAutomaticPoliciesAsync(configuration, effectiveResult, trigger, cancellationToken);
             }
 
-            await ApplyAutoAddPoliciesAsync(configuration, indexers, trigger, cancellationToken);
-
             await _auditLogService.WriteAsync(
                 action: "HealthCheckRun",
                 mode: configuration.Mode,

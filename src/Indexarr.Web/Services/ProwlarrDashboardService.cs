@@ -25,12 +25,6 @@ public sealed class ProwlarrDashboardService
 
         var states = await _dbContext.IndexerStates.AsNoTracking().OrderBy(x => x.Name).ToListAsync(cancellationToken);
         var blockedIndexers = await _dbContext.BlockedIndexers.AsNoTracking().OrderBy(x => x.Name).ToListAsync(cancellationToken);
-        if (states.Count == 0)
-        {
-            await _automationService.RunHealthChecksAsync("dashboard-bootstrap", cancellationToken);
-            states = await _dbContext.IndexerStates.AsNoTracking().OrderBy(x => x.Name).ToListAsync(cancellationToken);
-        }
-
         var history = (await _dbContext.IndexerHealthChecks
             .AsNoTracking()
             .ToListAsync(cancellationToken))

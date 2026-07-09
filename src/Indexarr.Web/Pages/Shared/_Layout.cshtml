@@ -11,18 +11,6 @@
             return (T("SidebarAutomationMessage"), "-");
         }
 
-        var separatorIndex = message.IndexOf(':');
-        if (separatorIndex >= 0)
-        {
-            var detail = message[(separatorIndex + 1)..].Trim().TrimEnd('.');
-            if (detail.Contains("OK", StringComparison.OrdinalIgnoreCase)
-                && detail.Contains("KO", StringComparison.OrdinalIgnoreCase))
-            {
-                // La label diventa direttamente "Stato indexer:" invece di "Messaggio:".
-                return (T("SidebarAutomationIndexerState"), detail);
-            }
-        }
-
         return (T("SidebarAutomationMessage"), message);
     }
 

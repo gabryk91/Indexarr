@@ -41,7 +41,6 @@ public sealed class IndexerAutomationHostedService : BackgroundService
 
             if (startupPending)
             {
-                await RunScopedAsync("startup", stoppingToken);
                 startupPending = false;
                 nextScheduledAtUtc = DateTimeOffset.UtcNow.Add(interval);
                 _runtimeState.SetNextScheduled(nextScheduledAtUtc);

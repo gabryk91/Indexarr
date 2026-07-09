@@ -13,7 +13,7 @@
   <Category>Tools:</Category>
   <WebUI>http://[IP]:[PORT:8080]/</WebUI>
   <TemplateURL>https://raw.githubusercontent.com/gabryk91/Indexarr/main/unraid/Indexarr.xml</TemplateURL>
-  <Icon>https://raw.githubusercontent.com/gabryk91/Indexarr/main/src/Indexarr.Web/wwwroot/images/indexarr_logo.png</Icon>
+  <Icon>https://raw.githubusercontent.com/gabryk91/Indexarr/main/src/Indexarr.Web/wwwroot/favicon.ico</Icon>
   <ExtraParams/>
   <PostArgs/>
   <CPUset/>
@@ -26,6 +26,9 @@
   <Config Name="Backups" Target="/backups" Default="/mnt/user/appdata/indexarr/backups" Mode="rw" Description="Folder where Indexarr writes backup exports before changes." Type="Path" Display="always" Required="true" Mask="false">/backups</Config>
   <Config Name="Logs" Target="/logs" Default="/mnt/user/appdata/indexarr/logs" Mode="rw" Description="Optional application log folder." Type="Path" Display="advanced" Required="false" Mask="false">/logs</Config>
   <Config Name="Timezone" Target="TZ" Default="Europe/Rome" Mode="" Description="Container timezone" Type="Variable" Display="always" Required="true" Mask="false">Europe/Rome</Config>
+  <Config Name="ConfigPathEnv" Target="Indexarr__ConfigPath" Default="/config" Mode="" Description="Internal path used by Indexarr for persistent configuration and SQLite storage. Keep /config when using the default template." Type="Variable" Display="advanced" Required="false" Mask="false">/config</Config>
+  <Config Name="BackupPathEnv" Target="Indexarr__BackupPath" Default="/backups" Mode="" Description="Internal path used by Indexarr for backup exports. Keep /backups when using the default template." Type="Variable" Display="advanced" Required="false" Mask="false">/backups</Config>
+  <Config Name="LogsPathEnv" Target="Indexarr__LogsPath" Default="/logs" Mode="" Description="Internal path used by Indexarr for application logs. Keep /logs when using the default template." Type="Variable" Display="advanced" Required="false" Mask="false">/logs</Config>
   <Config Name="ProwlarrUrl" Target="Indexarr__Prowlarr__Url" Default="http://prowlarr:9696" Mode="" Description="Base URL of the Prowlarr instance that Indexarr must manage." Type="Variable" Display="always" Required="true" Mask="false">http://prowlarr:9696</Config>
   <Config Name="ProwlarrApiKey" Target="Indexarr__Prowlarr__ApiKey" Default="" Mode="" Description="Prowlarr API key required for health checks and automation." Type="Variable" Display="always" Required="true" Mask="true"></Config>
   <Config Name="AutomationEnabled" Target="Indexarr__Automation__Enabled" Default="true" Mode="" Description="Enable the built-in background scheduler. Keep true for internal scheduling; set false if you want Unraid cron or User Scripts to orchestrate runs externally." Type="Variable" Display="advanced" Required="false" Mask="false">true</Config>

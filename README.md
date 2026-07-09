@@ -55,6 +55,29 @@ docker run -d \
 
 Poi apri `http://localhost:9697`.
 
+#### `Unraid`
+
+E' disponibile un template pronto per Unraid in [unraid/Indexarr.xml](unraid/Indexarr.xml).
+
+Usa questo URL come template:
+
+```text
+https://raw.githubusercontent.com/gabryk91/Indexarr/main/unraid/Indexarr.xml
+```
+
+Il template precompila:
+
+- porta web
+- path `/config`, `/backups`, `/logs`
+- variabili `TZ`, `Indexarr__ConfigPath`, `Indexarr__BackupPath`, `Indexarr__LogsPath`
+- variabili Prowlarr e scheduler
+
+Se installi da immagine Docker senza template, assicurati comunque di mappare almeno:
+
+- `/config`
+- `/backups`
+- opzionalmente `/logs`
+
 #### `Sviluppo locale`
 
 ```bash

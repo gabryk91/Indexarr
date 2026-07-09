@@ -12,6 +12,12 @@ RUN dotnet publish "Indexarr.Web.csproj" -c Release -o /app/publish --no-restore
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
 
+LABEL org.opencontainers.image.title="Indexarr" \
+      org.opencontainers.image.description="Self-hosted dashboard to monitor, protect, and automate Prowlarr indexers." \
+      org.opencontainers.image.source="https://github.com/gabryk91/Indexarr" \
+      org.opencontainers.image.url="https://github.com/gabryk91/Indexarr" \
+      org.opencontainers.image.documentation="https://github.com/gabryk91/Indexarr/blob/main/README.md"
+
 RUN apt-get update \
     && apt-get install -y --no-install-recommends wget \
     && rm -rf /var/lib/apt/lists/*
@@ -31,6 +37,7 @@ RUN mkdir -p /config /backups /logs
 COPY --from=build /app/publish .
 
 EXPOSE 8080
+VOLUME ["/config", "/backups", "/logs"]
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
   CMD wget -qO- http://127.0.0.1:8080/readyz || exit 1

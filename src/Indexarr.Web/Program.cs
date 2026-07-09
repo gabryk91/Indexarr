@@ -2,13 +2,20 @@ using Indexarr.Web.Data;
 using Indexarr.Web.Options;
 using Indexarr.Web.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
+var configDirectory = ResolveStorageDirectory(
+    builder.Configuration[$"{IndexarrOptions.SectionName}:{nameof(IndexarrOptions.ConfigPath)}"] ?? "/config",
+    builder.Environment.ContentRootPath);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(configDirectory, "keys")))
+    .SetApplicationName("Indexarr");
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
@@ -178,3 +185,18 @@ app.MapGet("/api/automation-status", (AutomationRuntimeState runtimeState) =>
 });
 
 app.Run();
+
+static string ResolveStorageDirectory(string configuredPath, string contentRootPath)
+{
+    if (OperatingSystem.IsWindows() && configuredPath.StartsWith('/'))
+    {
+        return Path.Combine(contentRootPath, configuredPath.Trim('/').Replace('/', Path.DirectorySeparatorChar));
+    }
+
+    if (Path.IsPathRooted(configuredPath))
+    {
+        return configuredPath;
+    }
+
+    return Path.Combine(contentRootPath, configuredPath);
+}

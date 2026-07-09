@@ -130,7 +130,7 @@ else if (Model.Reason == "prowlarr-unreachable")
             </ul>
             <div class="wizard-actions">
                 <button type="button" class="btn btn-outline-light" data-previous-step>@T("Previous")</button>
-                <button type="submit" class="btn btn-primary" id="finalSaveButton">@T("Save")</button>
+                <button type="submit" class="btn btn-primary" id="finalSaveButton" asp-page-handler="Save">@T("Save")</button>
             </div>
         </section>
     </form>

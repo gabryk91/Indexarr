@@ -104,7 +104,7 @@ public sealed class SetupModel : PageModel
         return Page();
     }
 
-    public async Task<IActionResult> OnPostAsync()
+    public async Task<IActionResult> OnPostSaveAsync()
     {
         _logger.LogInformation("Setup save requested. Step={Step} Url={Url} Mode={Mode}", CurrentStep, Input.ProwlarrUrl, Input.Mode);
 

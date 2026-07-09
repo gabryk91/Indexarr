@@ -1,33 +1,33 @@
 <?xml version="1.0"?>
 <Container version="2">
   <Name>Indexarr</Name>
-  <Repository>indexarr:latest</Repository>
+  <Repository>gabryk83/indexarr:latest</Repository>
   <Registry>https://hub.docker.com/</Registry>
   <Network>bridge</Network>
   <MyIP/>
   <Shell>sh</Shell>
   <Privileged>false</Privileged>
-  <Support/>
-  <Project/>
-  <Overview>Indexarr is a self-hosted ASP.NET Core web app for monitoring and automating Prowlarr indexer health.</Overview>
+  <Support>https://github.com/gabryk91/Indexarr/issues</Support>
+  <Project>https://github.com/gabryk91/Indexarr</Project>
+  <Overview>Indexarr is a self-hosted ASP.NET Core web app for monitoring and automating Prowlarr indexer health. The built-in scheduler runs inside the container background service and does not require UI access.</Overview>
   <Category>Tools:</Category>
   <WebUI>http://[IP]:[PORT:8080]/</WebUI>
-  <TemplateURL/>
-  <Icon/>
+  <TemplateURL>https://raw.githubusercontent.com/gabryk91/Indexarr/main/unraid/Indexarr.xml</TemplateURL>
+  <Icon>https://raw.githubusercontent.com/gabryk91/Indexarr/main/src/Indexarr.Web/wwwroot/images/indexarr_logo.png</Icon>
   <ExtraParams/>
   <PostArgs/>
   <CPUset/>
   <DateInstalled/>
   <DonateText/>
   <DonateLink/>
-  <Requires/>
-  <Config Name="WebUI" Target="8080" Default="9697" Mode="tcp" Description="HTTP port for Indexarr" Type="Port" Display="always" Required="true" Mask="false">8080</Config>
-  <Config Name="Config" Target="/config" Default="/mnt/cache/appdata/Indexarr" Mode="rw" Description="Persistent application data" Type="Path" Display="always" Required="true" Mask="false">/config</Config>
-  <Config Name="Backups" Target="/backups" Default="/mnt/user/backups/Indexarr" Mode="rw" Description="Backup destination" Type="Path" Display="always" Required="true" Mask="false">/backups</Config>
-  <Config Name="Logs" Target="/logs" Default="/mnt/user/appdata/Indexarr/logs" Mode="rw" Description="Optional logs folder" Type="Path" Display="advanced" Required="false" Mask="false">/logs</Config>
+  <Requires>A published Docker image for the repository configured above.</Requires>
+  <Config Name="WebUI" Target="8080" Default="9697" Mode="tcp" Description="HTTP port exposed by Indexarr." Type="Port" Display="always" Required="true" Mask="false">8080</Config>
+  <Config Name="Config" Target="/config" Default="/mnt/user/appdata/indexarr/config" Mode="rw" Description="Persistent application data, including SQLite database and saved settings." Type="Path" Display="always" Required="true" Mask="false">/config</Config>
+  <Config Name="Backups" Target="/backups" Default="/mnt/user/appdata/indexarr/backups" Mode="rw" Description="Folder where Indexarr writes backup exports before changes." Type="Path" Display="always" Required="true" Mask="false">/backups</Config>
+  <Config Name="Logs" Target="/logs" Default="/mnt/user/appdata/indexarr/logs" Mode="rw" Description="Optional application log folder." Type="Path" Display="advanced" Required="false" Mask="false">/logs</Config>
   <Config Name="Timezone" Target="TZ" Default="Europe/Rome" Mode="" Description="Container timezone" Type="Variable" Display="always" Required="true" Mask="false">Europe/Rome</Config>
-  <Config Name="ProwlarrUrl" Target="Indexarr__Prowlarr__Url" Default="http://prowlarr:9696" Mode="" Description="Prowlarr base URL" Type="Variable" Display="always" Required="true" Mask="false">http://prowlarr:9696</Config>
-  <Config Name="ProwlarrApiKey" Target="Indexarr__Prowlarr__ApiKey" Default="" Mode="" Description="Prowlarr API key" Type="Variable" Display="always" Required="false" Mask="true"></Config>
-  <Config Name="AutomationEnabled" Target="Indexarr__Automation__Enabled" Default="true" Mode="" Description="Enable scheduled indexer checks" Type="Variable" Display="advanced" Required="false" Mask="false">true</Config>
-  <Config Name="AutomationIntervalMinutes" Target="Indexarr__Automation__IntervalMinutes" Default="15" Mode="" Description="Minutes between scheduled health checks" Type="Variable" Display="advanced" Required="false" Mask="false">15</Config>
+  <Config Name="ProwlarrUrl" Target="Indexarr__Prowlarr__Url" Default="http://prowlarr:9696" Mode="" Description="Base URL of the Prowlarr instance that Indexarr must manage." Type="Variable" Display="always" Required="true" Mask="false">http://prowlarr:9696</Config>
+  <Config Name="ProwlarrApiKey" Target="Indexarr__Prowlarr__ApiKey" Default="" Mode="" Description="Prowlarr API key required for health checks and automation." Type="Variable" Display="always" Required="true" Mask="true"></Config>
+  <Config Name="AutomationEnabled" Target="Indexarr__Automation__Enabled" Default="true" Mode="" Description="Enable the built-in background scheduler. Keep true for internal scheduling; set false if you want Unraid cron or User Scripts to orchestrate runs externally." Type="Variable" Display="advanced" Required="false" Mask="false">true</Config>
+  <Config Name="AutomationIntervalMinutes" Target="Indexarr__Automation__IntervalMinutes" Default="15" Mode="" Description="Minutes between background automation runs when the built-in scheduler is enabled." Type="Variable" Display="advanced" Required="false" Mask="false">15</Config>
 </Container>

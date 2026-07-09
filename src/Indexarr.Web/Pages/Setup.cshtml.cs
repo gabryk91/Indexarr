@@ -100,9 +100,12 @@ public sealed class SetupModel : PageModel
         }
 
         CurrentStep = Math.Clamp(CurrentStep, 1, 4);
+        var current = await _configurationService.GetAsync(HttpContext.RequestAborted) ?? new SetupDraft();
+        Input = MergeWizardDraft(current, Input);
+        ModelState.Clear();
         ViewData["CurrentLanguage"] = CurrentLanguage;
 
-        if (!ModelState.IsValid)
+        if (!TryValidateModel(Input, nameof(Input)))
         {
             return Page();
         }
@@ -143,4 +146,42 @@ public sealed class SetupModel : PageModel
             }
         }
     }
+
+    private static SetupDraft MergeWizardDraft(SetupDraft current, SetupDraft posted)
+        => new()
+        {
+            Language = posted.Language,
+            Timezone = posted.Timezone,
+            Mode = posted.Mode,
+            FailureThreshold = posted.FailureThreshold,
+            HealthCheckTimeoutSeconds = current.HealthCheckTimeoutSeconds,
+            AutomationEnabled = current.AutomationEnabled,
+            AutomationIntervalMinutes = current.AutomationIntervalMinutes,
+            BackupBeforeChanges = posted.BackupBeforeChanges,
+            AutoDisableFailedIndexers = posted.AutoDisableFailedIndexers,
+            AutoAddPublicIndexers = posted.AutoAddPublicIndexers,
+            AutoAddProtocolFilter = current.AutoAddProtocolFilter,
+            AutoAddLanguageFilter = current.AutoAddLanguageFilter,
+            AutoAddCategoryFilter = current.AutoAddCategoryFilter,
+            AutoAddLanguageMatchMode = current.AutoAddLanguageMatchMode,
+            AutoAddAllowUnknownLanguage = current.AutoAddAllowUnknownLanguage,
+            AutoAddPrivacyFilter = current.AutoAddPrivacyFilter,
+            AutoAddGlobalUsername = current.AutoAddGlobalUsername,
+            AutoAddGlobalPassword = current.AutoAddGlobalPassword,
+            AutoAddFailureCooldownHours = current.AutoAddFailureCooldownHours,
+            AutoAddDefaultQueryLimit = current.AutoAddDefaultQueryLimit,
+            AutoAddDefaultGrabLimit = current.AutoAddDefaultGrabLimit,
+            AutoAddDefaultLimitsUnit = current.AutoAddDefaultLimitsUnit,
+            AutoAddDefaultAppMinimumSeeders = current.AutoAddDefaultAppMinimumSeeders,
+            AutoAddDefaultSeedRatio = current.AutoAddDefaultSeedRatio,
+            AutoAddDefaultSeedTime = current.AutoAddDefaultSeedTime,
+            AutoAddDefaultPackSeedTime = current.AutoAddDefaultPackSeedTime,
+            AutoAddDefaultPreferMagnetUrlMode = current.AutoAddDefaultPreferMagnetUrlMode,
+            AutoAddDefaultIndexerPriority = current.AutoAddDefaultIndexerPriority,
+            AutoAddDefaultDownloadClient = current.AutoAddDefaultDownloadClient,
+            AutoAddDefaultFilterByUploader = current.AutoAddDefaultFilterByUploader,
+            AutoAddDefaultTags = current.AutoAddDefaultTags,
+            ProwlarrUrl = posted.ProwlarrUrl,
+            ProwlarrApiKey = posted.ProwlarrApiKey
+        };
 }

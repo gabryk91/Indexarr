@@ -13,8 +13,8 @@ public sealed class TelegramNotificationSender
 
     public async Task<NotificationSendResult> SendAsync(string botToken, string chatId, string message, CancellationToken cancellationToken = default)
     {
-        botToken = botToken.Trim();
-        chatId = chatId.Trim();
+        botToken = botToken?.Trim() ?? string.Empty;
+        chatId = chatId?.Trim() ?? string.Empty;
 
         if (string.IsNullOrWhiteSpace(botToken) || string.IsNullOrWhiteSpace(chatId))
         {

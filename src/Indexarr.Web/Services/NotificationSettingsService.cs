@@ -30,14 +30,14 @@ public sealed class NotificationSettingsService
         }
 
         entity.TelegramEnabled = settings.TelegramEnabled;
-        entity.TelegramBotToken = settings.TelegramBotToken;
-        entity.TelegramChatId = settings.TelegramChatId;
+        entity.TelegramBotToken = settings.TelegramBotToken?.Trim() ?? string.Empty;
+        entity.TelegramChatId = settings.TelegramChatId?.Trim() ?? string.Empty;
         entity.PushoverEnabled = settings.PushoverEnabled;
-        entity.PushoverUserKey = settings.PushoverUserKey;
-        entity.PushoverApiToken = settings.PushoverApiToken;
+        entity.PushoverUserKey = settings.PushoverUserKey?.Trim() ?? string.Empty;
+        entity.PushoverApiToken = settings.PushoverApiToken?.Trim() ?? string.Empty;
         entity.GotifyEnabled = settings.GotifyEnabled;
-        entity.GotifyServerUrl = settings.GotifyServerUrl;
-        entity.GotifyAppToken = settings.GotifyAppToken;
+        entity.GotifyServerUrl = settings.GotifyServerUrl?.Trim() ?? string.Empty;
+        entity.GotifyAppToken = settings.GotifyAppToken?.Trim() ?? string.Empty;
         entity.NotifyIndexerAutoDisabled = settings.NotifyIndexerAutoDisabled;
         entity.NotifyIndexerAutoAdded = settings.NotifyIndexerAutoAdded;
         entity.NotifyProwlarrUnreachable = settings.NotifyProwlarrUnreachable;

@@ -5,6 +5,8 @@ namespace Indexarr.Web.Services;
 
 public sealed class ProwlarrDashboardService
 {
+    private const int IndexerPageSize = 10;
+    private const int AuditPageSize = 15;
     private readonly ProwlarrApiClient _apiClient;
     private readonly Indexarr.Web.Data.IndexarrDbContext _dbContext;
     private readonly IndexerAutomationService _automationService;
@@ -102,6 +104,11 @@ public sealed class ProwlarrDashboardService
         }).Concat(blockedViewModels).ToList();
 
         var filtered = allIndexers.Where(x => MatchesStatus(x, request.StatusFilter) && MatchesProtocol(x, request.ProtocolFilter)).ToList();
+        var orderedFiltered = OrderIndexers(filtered);
+        var indexerTotalCount = orderedFiltered.Count;
+        var indexerPage = ClampPage(request.IndexerPage, indexerTotalCount, IndexerPageSize);
+        var auditTotalCount = auditLogs.Count;
+        var auditPage = ClampPage(request.AuditPage, auditTotalCount, AuditPageSize);
 
         try
         {
@@ -132,6 +139,9 @@ public sealed class ProwlarrDashboardService
             }).Concat(blockedViewModels).ToList();
 
             filtered = allIndexers.Where(x => MatchesStatus(x, request.StatusFilter) && MatchesProtocol(x, request.ProtocolFilter)).ToList();
+            orderedFiltered = OrderIndexers(filtered);
+            indexerTotalCount = orderedFiltered.Count;
+            indexerPage = ClampPage(request.IndexerPage, indexerTotalCount, IndexerPageSize);
 
             return new ProwlarrDashboardViewModel
             {
@@ -154,8 +164,16 @@ public sealed class ProwlarrDashboardService
                     AuditAction = auditActionFilter,
                     AuditResult = auditResultFilter
                 },
-                AuditLogs = auditLogs,
-                Indexers = filtered.OrderBy(x => x.Result == "FAIL" ? 0 : 1).ThenBy(x => x.Name).ToList()
+                AuditLogs = Page(auditLogs, auditPage, AuditPageSize),
+                Indexers = Page(orderedFiltered, indexerPage, IndexerPageSize),
+                IndexerPage = indexerPage,
+                IndexerPageSize = IndexerPageSize,
+                IndexerTotalCount = indexerTotalCount,
+                IndexerTotalPages = TotalPages(indexerTotalCount, IndexerPageSize),
+                AuditPage = auditPage,
+                AuditPageSize = AuditPageSize,
+                AuditTotalCount = auditTotalCount,
+                AuditTotalPages = TotalPages(auditTotalCount, AuditPageSize)
             };
         }
         catch (Exception ex)
@@ -180,8 +198,16 @@ public sealed class ProwlarrDashboardService
                     AuditAction = auditActionFilter,
                     AuditResult = auditResultFilter
                 },
-                AuditLogs = auditLogs,
-                Indexers = filtered.OrderBy(x => x.Result == "FAIL" ? 0 : 1).ThenBy(x => x.Name).ToList()
+                AuditLogs = Page(auditLogs, auditPage, AuditPageSize),
+                Indexers = Page(orderedFiltered, indexerPage, IndexerPageSize),
+                IndexerPage = indexerPage,
+                IndexerPageSize = IndexerPageSize,
+                IndexerTotalCount = indexerTotalCount,
+                IndexerTotalPages = TotalPages(indexerTotalCount, IndexerPageSize),
+                AuditPage = auditPage,
+                AuditPageSize = AuditPageSize,
+                AuditTotalCount = auditTotalCount,
+                AuditTotalPages = TotalPages(auditTotalCount, AuditPageSize)
             };
         }
     }
@@ -229,6 +255,18 @@ public sealed class ProwlarrDashboardService
     private static bool MatchesProtocol(IndexerHealthViewModel indexer, string protocol)
         => string.Equals(protocol, "all", StringComparison.OrdinalIgnoreCase)
             || string.Equals(indexer.Protocol, protocol, StringComparison.OrdinalIgnoreCase);
+
+    private static IReadOnlyList<IndexerHealthViewModel> OrderIndexers(IEnumerable<IndexerHealthViewModel> indexers)
+        => indexers.OrderBy(x => x.Result == "FAIL" ? 0 : 1).ThenBy(x => x.Name).ToList();
+
+    private static IReadOnlyList<T> Page<T>(IReadOnlyList<T> items, int page, int pageSize)
+        => items.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+    private static int ClampPage(int requestedPage, int totalCount, int pageSize)
+        => Math.Min(Math.Max(1, requestedPage), Math.Max(1, TotalPages(totalCount, pageSize)));
+
+    private static int TotalPages(int totalCount, int pageSize)
+        => Math.Max(1, (int)Math.Ceiling(totalCount / (double)pageSize));
 
     private static string NormalizeAuditDateFilter(string? value, string? timezone)
     {

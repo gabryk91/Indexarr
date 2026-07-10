@@ -30,5 +30,21 @@ public sealed class ProwlarrDashboardViewModel
 
     public IReadOnlyList<IndexerHealthViewModel> Indexers { get; init; } = Array.Empty<IndexerHealthViewModel>();
 
+    public int IndexerPage { get; init; } = 1;
+
+    public int IndexerPageSize { get; init; } = 10;
+
+    public int IndexerTotalCount { get; init; }
+
+    public int IndexerTotalPages { get; init; }
+
+    public int AuditPage { get; init; } = 1;
+
+    public int AuditPageSize { get; init; } = 15;
+
+    public int AuditTotalCount { get; init; }
+
+    public int AuditTotalPages { get; init; }
+
     public string ErrorMessage { get; init; } = string.Empty;
 }

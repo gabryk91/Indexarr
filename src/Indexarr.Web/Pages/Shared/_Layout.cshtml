@@ -27,6 +27,8 @@
     <title>@ViewData["Title"] - Indexarr</title>
     <script type="importmap"></script>
     <link rel="icon" type="image/x-icon" href="~/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="1254x1254" href="~/images/indexarr_logo.png" asp-append-version="true" />
+    <link rel="apple-touch-icon" href="~/images/indexarr_logo.png" asp-append-version="true" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/Indexarr.Web.styles.css" asp-append-version="true" />
@@ -41,9 +43,21 @@
     else
     {
         <div class="app-shell">
-            <aside class="app-sidebar">
+            <header class="mobile-topbar">
+                <button type="button" class="menu-toggle" id="menuToggle" aria-controls="appSidebar" aria-expanded="false" aria-label="Apri menu">
+                    <span></span><span></span><span></span>
+                </button>
+                <a class="mobile-brand" asp-page="/Index">
+                    <img src="~/images/indexarr_logo.png" alt="" />
+                    <span>Indexarr</span>
+                </a>
+                <span class="mobile-brand-spacer" aria-hidden="true"></span>
+            </header>
+            <div class="sidebar-backdrop" id="sidebarBackdrop" hidden></div>
+            <aside class="app-sidebar" id="appSidebar" aria-label="Navigazione principale">
+                <button type="button" class="sidebar-close" id="sidebarClose" aria-label="Chiudi menu">×</button>
                 <div class="sidebar-brand">
-                    <img src="~/images/indexarr_logo.png" alt="Indexarr" class="brand-logo" />
+                    <img src="~/images/indexarr_logo.png" alt="" class="brand-logo" />
                     <a class="sidebar-title" asp-page="/Index">Indexarr</a>
                 </div>
 

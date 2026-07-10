@@ -34,6 +34,12 @@ public sealed class IndexModel : PageModel
     [BindProperty(SupportsGet = true)]
     public string AuditResultFilter { get; set; } = "all";
 
+    [BindProperty(SupportsGet = true)]
+    public int IndexerPage { get; set; } = 1;
+
+    [BindProperty(SupportsGet = true)]
+    public int AuditPage { get; set; } = 1;
+
     [TempData]
     public string? FlashMessage { get; set; }
 
@@ -63,7 +69,9 @@ public sealed class IndexModel : PageModel
                 ProtocolFilter = NormalizeProtocolFilter(ProtocolFilter),
                 AuditDateFilter = NormalizeAuditDateFilter(AuditDateFilter),
                 AuditActionFilter = NormalizeAuditActionFilter(AuditActionFilter),
-                AuditResultFilter = NormalizeAuditResultFilter(AuditResultFilter)
+                AuditResultFilter = NormalizeAuditResultFilter(AuditResultFilter),
+                IndexerPage = NormalizePage(IndexerPage),
+                AuditPage = NormalizePage(AuditPage)
             },
             HttpContext.RequestAborted);
     }
@@ -173,6 +181,10 @@ public sealed class IndexModel : PageModel
             protocolFilter = NormalizeProtocolFilter(ProtocolFilter),
             auditDateFilter = NormalizeAuditDateFilter(AuditDateFilter),
             auditActionFilter = NormalizeAuditActionFilter(AuditActionFilter),
-            auditResultFilter = NormalizeAuditResultFilter(AuditResultFilter)
+            auditResultFilter = NormalizeAuditResultFilter(AuditResultFilter),
+            indexerPage = NormalizePage(IndexerPage),
+            auditPage = NormalizePage(AuditPage)
         };
+
+    private static int NormalizePage(int value) => Math.Max(1, value);
 }

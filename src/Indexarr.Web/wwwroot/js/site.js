@@ -5,6 +5,38 @@ document.addEventListener("DOMContentLoaded", () => {
     const tagPickers = document.querySelectorAll("[data-tag-picker]");
     const semiPrivatePrivacyCheckbox = document.querySelector("input[name='SelectedAutoAddPrivacyFilters'][value='semi-private']");
     const globalCredentialFields = document.querySelectorAll("[data-global-credential-field]");
+    const menuToggle = document.getElementById("menuToggle");
+    const sidebar = document.getElementById("appSidebar");
+    const sidebarBackdrop = document.getElementById("sidebarBackdrop");
+    const sidebarClose = document.getElementById("sidebarClose");
+
+    if (menuToggle && sidebar && sidebarBackdrop && sidebarClose) {
+        const firstLink = sidebar.querySelector("a");
+        const closeMenu = () => {
+            sidebar.classList.remove("is-open");
+            sidebarBackdrop.hidden = true;
+            menuToggle.setAttribute("aria-expanded", "false");
+            document.body.classList.remove("menu-open");
+        };
+        const openMenu = () => {
+            sidebar.classList.add("is-open");
+            sidebarBackdrop.hidden = false;
+            menuToggle.setAttribute("aria-expanded", "true");
+            document.body.classList.add("menu-open");
+            firstLink?.focus();
+        };
+
+        menuToggle.addEventListener("click", () => sidebar.classList.contains("is-open") ? closeMenu() : openMenu());
+        sidebarClose.addEventListener("click", closeMenu);
+        sidebarBackdrop.addEventListener("click", closeMenu);
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape" && sidebar.classList.contains("is-open")) {
+                closeMenu();
+                menuToggle.focus();
+            }
+        });
+        sidebar.querySelectorAll("a").forEach((link) => link.addEventListener("click", closeMenu));
+    }
 
     if (busyOverlay) {
         const showBusyOverlay = () => {

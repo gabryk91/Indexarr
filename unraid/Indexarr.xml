@@ -13,7 +13,7 @@
   <Category>Tools:</Category>
   <WebUI>http://[IP]:[PORT:8080]/</WebUI>
   <TemplateURL>https://raw.githubusercontent.com/gabryk91/Indexarr/main/unraid/Indexarr.xml</TemplateURL>
-  <Icon>https://raw.githubusercontent.com/gabryk91/Indexarr/main/src/Indexarr.Web/wwwroot/favicon.ico</Icon>
+  <Icon>https://raw.githubusercontent.com/gabryk91/Indexarr/main/src/Indexarr.Web/wwwroot/images/indexarr_logo.png</Icon>
   <ExtraParams/>
   <PostArgs/>
   <CPUset/>

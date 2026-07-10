@@ -16,6 +16,7 @@ LABEL org.opencontainers.image.title="Indexarr" \
       org.opencontainers.image.description="Self-hosted dashboard to monitor, protect, and automate Prowlarr indexers." \
       org.opencontainers.image.source="https://github.com/gabryk91/Indexarr" \
       org.opencontainers.image.url="https://github.com/gabryk91/Indexarr" \
+      org.opencontainers.image.icon="https://raw.githubusercontent.com/gabryk91/Indexarr/main/src/Indexarr.Web/wwwroot/images/indexarr_logo.png" \
       org.opencontainers.image.documentation="https://github.com/gabryk91/Indexarr/blob/main/README.md"
 
 RUN apt-get update \

@@ -109,6 +109,30 @@ public sealed class DatabaseBootstrapper
             cancellationToken);
 
         await _dbContext.Database.ExecuteSqlRawAsync(
+            """
+            CREATE TABLE IF NOT EXISTS NotificationSettings (
+                Id INTEGER NOT NULL CONSTRAINT PK_NotificationSettings PRIMARY KEY,
+                TelegramEnabled INTEGER NOT NULL DEFAULT 0,
+                TelegramBotToken TEXT NOT NULL DEFAULT '',
+                TelegramChatId TEXT NOT NULL DEFAULT '',
+                PushoverEnabled INTEGER NOT NULL DEFAULT 0,
+                PushoverUserKey TEXT NOT NULL DEFAULT '',
+                PushoverApiToken TEXT NOT NULL DEFAULT '',
+                GotifyEnabled INTEGER NOT NULL DEFAULT 0,
+                GotifyServerUrl TEXT NOT NULL DEFAULT '',
+                GotifyAppToken TEXT NOT NULL DEFAULT '',
+                NotifyIndexerAutoDisabled INTEGER NOT NULL DEFAULT 1,
+                NotifyIndexerAutoAdded INTEGER NOT NULL DEFAULT 1,
+                NotifyProwlarrUnreachable INTEGER NOT NULL DEFAULT 1,
+                NotifyBackupCreated INTEGER NOT NULL DEFAULT 0,
+                NotifyRestoreCompleted INTEGER NOT NULL DEFAULT 1,
+                NotifyRollbackError INTEGER NOT NULL DEFAULT 1,
+                UpdatedAtUtc TEXT NOT NULL
+            );
+            """,
+            cancellationToken);
+
+        await _dbContext.Database.ExecuteSqlRawAsync(
             "CREATE INDEX IF NOT EXISTS IX_IndexerHealthChecks_IndexerId_CheckedAtUtc ON IndexerHealthChecks (IndexerId, CheckedAtUtc DESC);",
             cancellationToken);
         await _dbContext.Database.ExecuteSqlRawAsync(

@@ -24,6 +24,8 @@ public sealed class IndexarrDbContext : DbContext
 
     public DbSet<AuditLogEntity> AuditLogs => Set<AuditLogEntity>();
 
+    public DbSet<NotificationSettingsEntity> NotificationSettings => Set<NotificationSettingsEntity>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<AppConfigurationEntity>(entity =>
@@ -100,6 +102,17 @@ public sealed class IndexarrDbContext : DbContext
             entity.Property(x => x.Action).HasMaxLength(64);
             entity.Property(x => x.Mode).HasMaxLength(32);
             entity.HasIndex(x => x.CreatedAtUtc);
+        });
+
+        modelBuilder.Entity<NotificationSettingsEntity>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.TelegramBotToken).HasMaxLength(256);
+            entity.Property(x => x.TelegramChatId).HasMaxLength(128);
+            entity.Property(x => x.PushoverUserKey).HasMaxLength(128);
+            entity.Property(x => x.PushoverApiToken).HasMaxLength(128);
+            entity.Property(x => x.GotifyServerUrl).HasMaxLength(1024);
+            entity.Property(x => x.GotifyAppToken).HasMaxLength(128);
         });
     }
 }

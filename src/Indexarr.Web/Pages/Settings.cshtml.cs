@@ -3,6 +3,7 @@ using System.Text.Json;
 using Indexarr.Web.Localization;
 using Indexarr.Web.Models;
 using Indexarr.Web.Services;
+using Indexarr.Web.Services.Notifications;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -18,6 +19,11 @@ public sealed class SettingsModel : PageModel
     private readonly ProwlarrApiClient _apiClient;
     private readonly IndexerBackupService _backupService;
     private readonly IndexerAutomationService _automationService;
+    private readonly NotificationSettingsService _notificationSettingsService;
+    private readonly NotificationDispatchService _notificationDispatchService;
+    private readonly TelegramNotificationSender _telegramSender;
+    private readonly PushoverNotificationSender _pushoverSender;
+    private readonly GotifyNotificationSender _gotifySender;
 
     public SettingsModel(
         AppConfigurationService configurationService,
@@ -25,7 +31,12 @@ public sealed class SettingsModel : PageModel
         AuthService authService,
         ProwlarrApiClient apiClient,
         IndexerBackupService backupService,
-        IndexerAutomationService automationService)
+        IndexerAutomationService automationService,
+        NotificationSettingsService notificationSettingsService,
+        NotificationDispatchService notificationDispatchService,
+        TelegramNotificationSender telegramSender,
+        PushoverNotificationSender pushoverSender,
+        GotifyNotificationSender gotifySender)
     {
         _configurationService = configurationService;
         _connectionService = connectionService;
@@ -33,10 +44,18 @@ public sealed class SettingsModel : PageModel
         _apiClient = apiClient;
         _backupService = backupService;
         _automationService = automationService;
+        _notificationSettingsService = notificationSettingsService;
+        _notificationDispatchService = notificationDispatchService;
+        _telegramSender = telegramSender;
+        _pushoverSender = pushoverSender;
+        _gotifySender = gotifySender;
     }
 
     [BindProperty]
     public SetupDraft Input { get; set; } = new();
+
+    [BindProperty]
+    public NotificationSettings NotificationsInput { get; set; } = new();
 
     [BindProperty]
     public string? CurrentPassword { get; set; }
@@ -92,6 +111,8 @@ public sealed class SettingsModel : PageModel
         {
             ResetSelectionData(configuration);
         }
+
+        NotificationsInput = await _notificationSettingsService.GetAsync(HttpContext.RequestAborted);
 
         AutoAddCooldownCount = await _automationService.GetAutoAddCooldownCountAsync(HttpContext.RequestAborted);
         return Page();
@@ -238,8 +259,88 @@ public sealed class SettingsModel : PageModel
         Input = (SetupDraft)configuration;
         var raw = await _apiClient.GetIndexersPayloadAsync(Input, HttpContext.RequestAborted);
         var path = await _backupService.SaveAsync("manual-backup", raw, HttpContext.RequestAborted);
+        await _notificationDispatchService.NotifyAsync(
+            NotificationEvent.BackupCreated,
+            string.Format(T("NotifyMessageBackupCreated"), path),
+            HttpContext.RequestAborted);
         FlashMessage = $"{T("BackupCreated")} {path}";
         return RedirectToPage(new { tab = "maintenance" });
+    }
+
+    public async Task<IActionResult> OnPostSaveNotificationsAsync()
+    {
+        var configuration = await EnsureConfigurationAsync();
+        if (configuration is IActionResult actionResult)
+        {
+            return actionResult;
+        }
+
+        Tab = "notifications";
+        Input = (SetupDraft)configuration;
+        ViewData["CurrentLanguage"] = CurrentLanguage;
+        await _notificationSettingsService.SaveAsync(NotificationsInput, HttpContext.RequestAborted);
+        FlashMessage = T("SettingsSaved");
+        return RedirectToPage(new { tab = "notifications" });
+    }
+
+    public async Task<IActionResult> OnPostTestTelegramAsync()
+    {
+        var configuration = await EnsureConfigurationAsync();
+        if (configuration is IActionResult actionResult)
+        {
+            return actionResult;
+        }
+
+        Tab = "notifications";
+        Input = (SetupDraft)configuration;
+        ViewData["CurrentLanguage"] = CurrentLanguage;
+        var result = await _telegramSender.SendAsync(
+            NotificationsInput.TelegramBotToken,
+            NotificationsInput.TelegramChatId,
+            T("NotifyTestMessage"),
+            HttpContext.RequestAborted);
+        FlashMessage = result.Success ? T("NotificationTestOk") : $"{T("NotificationTestFailed")} {result.Message}";
+        return Page();
+    }
+
+    public async Task<IActionResult> OnPostTestPushoverAsync()
+    {
+        var configuration = await EnsureConfigurationAsync();
+        if (configuration is IActionResult actionResult)
+        {
+            return actionResult;
+        }
+
+        Tab = "notifications";
+        Input = (SetupDraft)configuration;
+        ViewData["CurrentLanguage"] = CurrentLanguage;
+        var result = await _pushoverSender.SendAsync(
+            NotificationsInput.PushoverUserKey,
+            NotificationsInput.PushoverApiToken,
+            T("NotifyTestMessage"),
+            HttpContext.RequestAborted);
+        FlashMessage = result.Success ? T("NotificationTestOk") : $"{T("NotificationTestFailed")} {result.Message}";
+        return Page();
+    }
+
+    public async Task<IActionResult> OnPostTestGotifyAsync()
+    {
+        var configuration = await EnsureConfigurationAsync();
+        if (configuration is IActionResult actionResult)
+        {
+            return actionResult;
+        }
+
+        Tab = "notifications";
+        Input = (SetupDraft)configuration;
+        ViewData["CurrentLanguage"] = CurrentLanguage;
+        var result = await _gotifySender.SendAsync(
+            NotificationsInput.GotifyServerUrl,
+            NotificationsInput.GotifyAppToken,
+            T("NotifyTestMessage"),
+            HttpContext.RequestAborted);
+        FlashMessage = result.Success ? T("NotificationTestOk") : $"{T("NotificationTestFailed")} {result.Message}";
+        return Page();
     }
 
     public async Task<IActionResult> OnPostClearAutoAddCooldownAsync()
@@ -325,6 +426,7 @@ public sealed class SettingsModel : PageModel
             "general" => "general",
             "integrations" => "integrations",
             "protections" => "protections",
+            "notifications" => "notifications",
             "account" => "account",
             "maintenance" => "maintenance",
             _ => "general"

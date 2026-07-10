@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "indexarr-web",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "src/Indexarr.Web", "--urls", "http://localhost:5183"],
+      "port": 5183
+    }
+  ]
+}

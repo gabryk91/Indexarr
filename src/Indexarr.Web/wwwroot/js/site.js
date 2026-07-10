@@ -1,3 +1,33 @@
+(function () {
+    const storageKey = "indexarr-scroll:" + location.pathname;
+
+    const getScrollRoot = () => {
+        const main = document.querySelector(".app-main");
+        if (main && main.scrollHeight > main.clientHeight + 1) {
+            return main;
+        }
+        return document.scrollingElement || document.documentElement;
+    };
+
+    const restoreScroll = () => {
+        const saved = sessionStorage.getItem(storageKey);
+        if (saved === null) {
+            return;
+        }
+        const y = parseInt(saved, 10);
+        if (Number.isNaN(y)) {
+            return;
+        }
+        getScrollRoot().scrollTop = y;
+    };
+
+    requestAnimationFrame(restoreScroll);
+    window.addEventListener("load", restoreScroll);
+    window.addEventListener("beforeunload", () => {
+        sessionStorage.setItem(storageKey, String(getScrollRoot().scrollTop));
+    });
+})();
+
 document.addEventListener("DOMContentLoaded", () => {
     const busyOverlay = document.getElementById("globalBusyOverlay");
     const countdownRoot = document.getElementById("automationCountdown");
@@ -36,6 +66,38 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
         sidebar.querySelectorAll("a").forEach((link) => link.addEventListener("click", closeMenu));
+    }
+
+    const themeToggle = document.getElementById("themeToggle");
+    if (themeToggle) {
+        const root = document.documentElement;
+        const media = window.matchMedia("(prefers-color-scheme: dark)");
+        const order = ["dark", "light", "system"];
+
+        const resolveTheme = (preference) => preference === "system" ? (media.matches ? "dark" : "light") : preference;
+
+        const applyPreference = (preference) => {
+            root.dataset.theme = resolveTheme(preference);
+            root.dataset.themePreference = preference;
+            localStorage.setItem("indexarr-theme", preference);
+            const nextPreference = order[(order.indexOf(preference) + 1) % order.length];
+            const labelKey = "label" + nextPreference.charAt(0).toUpperCase() + nextPreference.slice(1);
+            themeToggle.setAttribute("aria-label", themeToggle.dataset[labelKey] ?? "");
+        };
+
+        applyPreference(root.dataset.themePreference || "system");
+
+        themeToggle.addEventListener("click", () => {
+            const current = root.dataset.themePreference || "system";
+            const next = order[(order.indexOf(current) + 1) % order.length];
+            applyPreference(next);
+        });
+
+        media.addEventListener("change", () => {
+            if ((root.dataset.themePreference || "system") === "system") {
+                root.dataset.theme = resolveTheme("system");
+            }
+        });
     }
 
     if (busyOverlay) {

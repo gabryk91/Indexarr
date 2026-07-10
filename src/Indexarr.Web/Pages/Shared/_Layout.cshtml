@@ -29,6 +29,18 @@
     <link rel="icon" type="image/x-icon" href="~/favicon.ico" />
     <link rel="icon" type="image/png" sizes="1254x1254" href="~/images/indexarr_logo.png" asp-append-version="true" />
     <link rel="apple-touch-icon" href="~/images/indexarr_logo.png" asp-append-version="true" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    <script>
+        (function () {
+            var stored = localStorage.getItem('indexarr-theme') || 'system';
+            var resolved = stored === 'system'
+                ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+                : stored;
+            document.documentElement.dataset.theme = resolved;
+            document.documentElement.dataset.themePreference = stored;
+        })();
+    </script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/Indexarr.Web.styles.css" asp-append-version="true" />
@@ -44,7 +56,7 @@
     {
         <div class="app-shell">
             <header class="mobile-topbar">
-                <button type="button" class="menu-toggle" id="menuToggle" aria-controls="appSidebar" aria-expanded="false" aria-label="Apri menu">
+                <button type="button" class="menu-toggle" id="menuToggle" aria-controls="appSidebar" aria-expanded="false" aria-label="@T("SidebarOpenMenu")">
                     <span></span><span></span><span></span>
                 </button>
                 <a class="mobile-brand" asp-page="/Index">
@@ -54,11 +66,33 @@
                 <span class="mobile-brand-spacer" aria-hidden="true"></span>
             </header>
             <div class="sidebar-backdrop" id="sidebarBackdrop" hidden></div>
-            <aside class="app-sidebar" id="appSidebar" aria-label="Navigazione principale">
-                <button type="button" class="sidebar-close" id="sidebarClose" aria-label="Chiudi menu">×</button>
+            <aside class="app-sidebar" id="appSidebar" aria-label="@T("SidebarNav")">
+                <button type="button" class="sidebar-close" id="sidebarClose" aria-label="@T("SidebarCloseMenu")">×</button>
                 <div class="sidebar-brand">
-                    <img src="~/images/indexarr_logo.png" alt="" class="brand-logo" />
+                    <span class="brand-logo-wrap">
+                        <img src="~/images/indexarr_logo.png" alt="" class="brand-logo" />
+                    </span>
                     <a class="sidebar-title" asp-page="/Index">Indexarr</a>
+                    <div class="sidebar-brand-actions">
+                        <span class="brand-live-dot" title="@T("SidebarPollingActive")"></span>
+                        <button type="button" class="theme-toggle" id="themeToggle" data-role="theme-toggle"
+                                data-label-dark="@T("ThemeToggleToDark")"
+                                data-label-light="@T("ThemeToggleToLight")"
+                                data-label-system="@T("ThemeToggleToSystem")"
+                                aria-label="@T("ThemeToggleToLight")">
+                            <svg class="theme-toggle-icon icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <circle cx="12" cy="12" r="4"></circle>
+                                <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path>
+                            </svg>
+                            <svg class="theme-toggle-icon icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"></path>
+                            </svg>
+                            <svg class="theme-toggle-icon icon-system" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <rect x="3" y="4" width="18" height="12" rx="2"></rect>
+                                <path d="M8 20h8M12 16v4"></path>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
 
                 <section class="sidebar-status-card">

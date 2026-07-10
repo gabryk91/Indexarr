@@ -1,6 +1,7 @@
 using Indexarr.Web.Data;
 using Indexarr.Web.Options;
 using Indexarr.Web.Services;
+using Indexarr.Web.Services.Notifications;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
@@ -33,6 +34,7 @@ builder.Services.AddSingleton<StoragePathResolver>();
 builder.Services.AddSingleton<SetupDraftStore>();
 builder.Services.AddHttpClient(nameof(ProwlarrConnectionService));
 builder.Services.AddHttpClient(nameof(ProwlarrApiClient));
+builder.Services.AddHttpClient(nameof(NotificationDispatchService));
 builder.Services.AddScoped<DatabaseBootstrapper>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<ProwlarrConnectionService>();
@@ -42,6 +44,11 @@ builder.Services.AddScoped<IndexerBackupService>();
 builder.Services.AddScoped<IndexerAutomationService>();
 builder.Services.AddScoped<ProwlarrDashboardService>();
 builder.Services.AddScoped<AppConfigurationService>();
+builder.Services.AddScoped<NotificationSettingsService>();
+builder.Services.AddScoped<TelegramNotificationSender>();
+builder.Services.AddScoped<PushoverNotificationSender>();
+builder.Services.AddScoped<GotifyNotificationSender>();
+builder.Services.AddScoped<NotificationDispatchService>();
 builder.Services.AddHostedService<IndexerAutomationHostedService>();
 builder.Services.AddDbContext<IndexarrDbContext>((serviceProvider, options) =>
 {

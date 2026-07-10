@@ -3,6 +3,7 @@ using System.Text.Json.Nodes;
 using Indexarr.Web.Data;
 using Indexarr.Web.Data.Entities;
 using Indexarr.Web.Models;
+using Indexarr.Web.Services.Notifications;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -15,6 +16,7 @@ public sealed class IndexerAutomationService
     private readonly IndexarrDbContext _dbContext;
     private readonly AuditLogService _auditLogService;
     private readonly IndexerBackupService _backupService;
+    private readonly NotificationDispatchService _notificationDispatchService;
     private readonly ILogger<IndexerAutomationService> _logger;
 
     public IndexerAutomationService(
@@ -23,6 +25,7 @@ public sealed class IndexerAutomationService
         IndexarrDbContext dbContext,
         AuditLogService auditLogService,
         IndexerBackupService backupService,
+        NotificationDispatchService notificationDispatchService,
         ILogger<IndexerAutomationService> logger)
     {
         _configurationService = configurationService;
@@ -30,6 +33,7 @@ public sealed class IndexerAutomationService
         _dbContext = dbContext;
         _auditLogService = auditLogService;
         _backupService = backupService;
+        _notificationDispatchService = notificationDispatchService;
         _logger = logger;
     }
 
@@ -85,6 +89,11 @@ public sealed class IndexerAutomationService
                 succeeded: false,
                 details: $"{trigger}: {ex.Message}",
                 cancellationToken: cancellationToken);
+
+            await _notificationDispatchService.NotifyAsync(
+                NotificationEvent.ProwlarrUnreachable,
+                string.Format(T(configuration.Language, "NotifyMessageProwlarrUnreachable"), ex.Message),
+                cancellationToken);
 
             return new HealthCheckRunResult
             {
@@ -379,6 +388,15 @@ public sealed class IndexerAutomationService
                 indexerId: result.Id,
                 indexerName: result.Name,
                 cancellationToken: cancellationToken);
+
+            if (update.Success)
+            {
+                await _notificationDispatchService.NotifyAsync(
+                    NotificationEvent.IndexerAutoDisabled,
+                    string.Format(T(configuration.Language, "NotifyMessageIndexerAutoDisabled"), result.Name, state.ConsecutiveFailures),
+                    cancellationToken);
+            }
+
             return;
         }
 
@@ -623,6 +641,14 @@ public sealed class IndexerAutomationService
                     details: $"{trigger}: {result.Message}",
                     indexerName: name,
                     cancellationToken: cancellationToken);
+            }
+
+            if (addedCount > 0)
+            {
+                await _notificationDispatchService.NotifyAsync(
+                    NotificationEvent.IndexerAutoAdded,
+                    string.Format(T(configuration.Language, "NotifyMessageIndexerAutoAdded"), addedCount, candidates.Count),
+                    cancellationToken);
             }
 
             return new AutoAddRunResult

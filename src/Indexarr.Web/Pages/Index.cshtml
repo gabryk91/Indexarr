@@ -4,43 +4,66 @@
 @{
     ViewData["Title"] = UiTextCatalog.Get(Model.CurrentLanguage, "NavDashboard");
     string T(string key) => UiTextCatalog.Get(Model.CurrentLanguage, key);
+
+    static IEnumerable<int?> BuildPageNumbers(int current, int total)
+    {
+        if (total <= 1)
+        {
+            yield break;
+        }
+
+        var pages = new SortedSet<int>();
+        foreach (var candidate in new[] { 1, 2, current, total - 1, total })
+        {
+            if (candidate >= 1 && candidate <= total)
+            {
+                pages.Add(candidate);
+            }
+        }
+
+        int? previous = null;
+        foreach (var pageNumber in pages)
+        {
+            if (previous.HasValue && pageNumber - previous.Value > 1)
+            {
+                yield return null;
+            }
+
+            yield return pageNumber;
+            previous = pageNumber;
+        }
+    }
 }
 
-<section class="hero">
-    <div class="hero-copy">
-        <h1>@T("IndexTitle")</h1>
-        <p class="lead">@T("IndexLead")</p>
-        <div class="hero-actions">
-            @if (Model.CanManage)
-            {
-                <form method="post" asp-page-handler="RunHealthCheck" data-long-operation="true">
-                    <input type="hidden" name="StatusFilter" value="@Model.StatusFilter" />
-                    <input type="hidden" name="ProtocolFilter" value="@Model.ProtocolFilter" />
-                    <input type="hidden" name="AuditDateFilter" value="@Model.Dashboard.Filters.AuditDate" />
-                    <input type="hidden" name="AuditActionFilter" value="@Model.Dashboard.Filters.AuditAction" />
-                    <input type="hidden" name="AuditResultFilter" value="@Model.Dashboard.Filters.AuditResult" />
-                    <input type="hidden" name="IndexerPage" value="@Model.Dashboard.IndexerPage" />
-                    <input type="hidden" name="AuditPage" value="@Model.Dashboard.AuditPage" />
-                    <button type="submit" class="btn btn-primary">@T("RunHealthCheck")</button>
-                </form>
-                <form method="post" asp-page-handler="RunAutoAdd" data-long-operation="true">
-                    <input type="hidden" name="StatusFilter" value="@Model.StatusFilter" />
-                    <input type="hidden" name="ProtocolFilter" value="@Model.ProtocolFilter" />
-                    <input type="hidden" name="AuditDateFilter" value="@Model.Dashboard.Filters.AuditDate" />
-                    <input type="hidden" name="AuditActionFilter" value="@Model.Dashboard.Filters.AuditAction" />
-                    <input type="hidden" name="AuditResultFilter" value="@Model.Dashboard.Filters.AuditResult" />
-                    <input type="hidden" name="IndexerPage" value="@Model.Dashboard.IndexerPage" />
-                    <input type="hidden" name="AuditPage" value="@Model.Dashboard.AuditPage" />
-                    <button type="submit" class="btn btn-outline-light">@T("RunAutoAdd")</button>
-                </form>
-            }
-            else
-            {
-                <a class="btn btn-primary" asp-page="/Login" asp-route-returnUrl="@Url.Page("/Settings")">@T("LoginToManage")</a>
-            }
-        </div>
-    </div>
-</section>
+<div class="dashboard-toolbar">
+    @if (Model.CanManage)
+    {
+        <form method="post" asp-page-handler="RunHealthCheck" data-long-operation="true">
+            <input type="hidden" name="StatusFilter" value="@Model.StatusFilter" />
+            <input type="hidden" name="ProtocolFilter" value="@Model.ProtocolFilter" />
+            <input type="hidden" name="AuditDateFilter" value="@Model.Dashboard.Filters.AuditDate" />
+            <input type="hidden" name="AuditActionFilter" value="@Model.Dashboard.Filters.AuditAction" />
+            <input type="hidden" name="AuditResultFilter" value="@Model.Dashboard.Filters.AuditResult" />
+            <input type="hidden" name="IndexerPage" value="@Model.Dashboard.IndexerPage" />
+            <input type="hidden" name="AuditPage" value="@Model.Dashboard.AuditPage" />
+            <button type="submit" class="btn btn-primary">@await Html.PartialAsync("_Icon", "check-circle")@T("RunHealthCheck")</button>
+        </form>
+        <form method="post" asp-page-handler="RunAutoAdd" data-long-operation="true">
+            <input type="hidden" name="StatusFilter" value="@Model.StatusFilter" />
+            <input type="hidden" name="ProtocolFilter" value="@Model.ProtocolFilter" />
+            <input type="hidden" name="AuditDateFilter" value="@Model.Dashboard.Filters.AuditDate" />
+            <input type="hidden" name="AuditActionFilter" value="@Model.Dashboard.Filters.AuditAction" />
+            <input type="hidden" name="AuditResultFilter" value="@Model.Dashboard.Filters.AuditResult" />
+            <input type="hidden" name="IndexerPage" value="@Model.Dashboard.IndexerPage" />
+            <input type="hidden" name="AuditPage" value="@Model.Dashboard.AuditPage" />
+            <button type="submit" class="btn btn-outline-light">@await Html.PartialAsync("_Icon", "plus-circle")@T("RunAutoAdd")</button>
+        </form>
+    }
+    else
+    {
+        <a class="btn btn-primary" asp-page="/Login" asp-route-returnUrl="@Url.Page("/Settings")">@T("LoginToManage")</a>
+    }
+</div>
 
 @if (!string.IsNullOrWhiteSpace(Model.FlashMessage))
 {
@@ -115,7 +138,7 @@
     <div class="table-card-header">
         <div>
             <h2>@T("IndexersTitle")</h2>
-            <p class="section-description">Elenco degli indexer monitorati e stato dell’ultimo controllo.</p>
+            <p class="section-description">@T("IndexersSectionDescription")</p>
         </div>
         <form method="get" class="filter-form">
             <div>
@@ -244,8 +267,8 @@
                 </tbody>
             </table>
         </div>
-        <nav class="pagination-bar" aria-label="Paginazione indexer">
-            <span class="pagination-summary">Pagina @Model.Dashboard.IndexerPage di @Model.Dashboard.IndexerTotalPages · @Model.Dashboard.IndexerTotalCount risultati</span>
+        <nav class="pagination-bar" aria-label="@T("PaginationIndexerLabel")">
+            <span class="pagination-summary">@string.Format(T("PaginationSummary"), Model.Dashboard.IndexerPage, Model.Dashboard.IndexerTotalPages, Model.Dashboard.IndexerTotalCount)</span>
             <div class="pagination-actions">
                 <a class="btn btn-sm btn-outline-light @(Model.Dashboard.IndexerPage <= 1 ? "disabled" : string.Empty)"
                    asp-route-indexerPage="1" asp-route-auditPage="@Model.Dashboard.AuditPage"
@@ -255,10 +278,28 @@
                    asp-route-indexerPage="@(Math.Max(1, Model.Dashboard.IndexerPage - 1))" asp-route-auditPage="@Model.Dashboard.AuditPage"
                    asp-route-statusFilter="@Model.Dashboard.Filters.Status" asp-route-protocolFilter="@Model.Dashboard.Filters.Protocol"
                    asp-route-auditDateFilter="@Model.Dashboard.Filters.AuditDate" asp-route-auditActionFilter="@Model.Dashboard.Filters.AuditAction" asp-route-auditResultFilter="@Model.Dashboard.Filters.AuditResult">‹</a>
+                @foreach (var pageNumber in BuildPageNumbers(Model.Dashboard.IndexerPage, Model.Dashboard.IndexerTotalPages))
+                {
+                    if (pageNumber is null)
+                    {
+                        <span class="pagination-ellipsis">…</span>
+                    }
+                    else
+                    {
+                        <a class="btn btn-sm pagination-page @(pageNumber == Model.Dashboard.IndexerPage ? "btn-primary" : "btn-outline-light")"
+                           asp-route-indexerPage="@pageNumber" asp-route-auditPage="@Model.Dashboard.AuditPage"
+                           asp-route-statusFilter="@Model.Dashboard.Filters.Status" asp-route-protocolFilter="@Model.Dashboard.Filters.Protocol"
+                           asp-route-auditDateFilter="@Model.Dashboard.Filters.AuditDate" asp-route-auditActionFilter="@Model.Dashboard.Filters.AuditAction" asp-route-auditResultFilter="@Model.Dashboard.Filters.AuditResult">@pageNumber</a>
+                    }
+                }
                 <a class="btn btn-sm btn-outline-light @(Model.Dashboard.IndexerPage >= Model.Dashboard.IndexerTotalPages ? "disabled" : string.Empty)"
                    asp-route-indexerPage="@(Math.Min(Model.Dashboard.IndexerTotalPages, Model.Dashboard.IndexerPage + 1))" asp-route-auditPage="@Model.Dashboard.AuditPage"
                    asp-route-statusFilter="@Model.Dashboard.Filters.Status" asp-route-protocolFilter="@Model.Dashboard.Filters.Protocol"
                    asp-route-auditDateFilter="@Model.Dashboard.Filters.AuditDate" asp-route-auditActionFilter="@Model.Dashboard.Filters.AuditAction" asp-route-auditResultFilter="@Model.Dashboard.Filters.AuditResult">›</a>
+                <a class="btn btn-sm btn-outline-light @(Model.Dashboard.IndexerPage >= Model.Dashboard.IndexerTotalPages ? "disabled" : string.Empty)"
+                   asp-route-indexerPage="@Model.Dashboard.IndexerTotalPages" asp-route-auditPage="@Model.Dashboard.AuditPage"
+                   asp-route-statusFilter="@Model.Dashboard.Filters.Status" asp-route-protocolFilter="@Model.Dashboard.Filters.Protocol"
+                   asp-route-auditDateFilter="@Model.Dashboard.Filters.AuditDate" asp-route-auditActionFilter="@Model.Dashboard.Filters.AuditAction" asp-route-auditResultFilter="@Model.Dashboard.Filters.AuditResult">»</a>
             </div>
         </nav>
     }
@@ -268,7 +309,7 @@
     <div class="table-card-header">
         <div>
             <h2>@T("AuditLogTitle")</h2>
-            <p class="section-description">Storico delle operazioni, dei controlli e degli errori registrati.</p>
+            <p class="section-description">@T("AuditLogSectionDescription")</p>
         </div>
         <form method="get" class="filter-form">
             <div>
@@ -331,8 +372,8 @@
                 </tbody>
             </table>
         </div>
-        <nav class="pagination-bar" aria-label="Paginazione audit">
-            <span class="pagination-summary">Pagina @Model.Dashboard.AuditPage di @Model.Dashboard.AuditTotalPages · @Model.Dashboard.AuditTotalCount risultati</span>
+        <nav class="pagination-bar" aria-label="@T("PaginationAuditLabel")">
+            <span class="pagination-summary">@string.Format(T("PaginationSummary"), Model.Dashboard.AuditPage, Model.Dashboard.AuditTotalPages, Model.Dashboard.AuditTotalCount)</span>
             <div class="pagination-actions">
                 <a class="btn btn-sm btn-outline-light @(Model.Dashboard.AuditPage <= 1 ? "disabled" : string.Empty)"
                    asp-route-auditPage="1" asp-route-indexerPage="@Model.Dashboard.IndexerPage"
@@ -342,10 +383,28 @@
                    asp-route-auditPage="@(Math.Max(1, Model.Dashboard.AuditPage - 1))" asp-route-indexerPage="@Model.Dashboard.IndexerPage"
                    asp-route-statusFilter="@Model.Dashboard.Filters.Status" asp-route-protocolFilter="@Model.Dashboard.Filters.Protocol"
                    asp-route-auditDateFilter="@Model.Dashboard.Filters.AuditDate" asp-route-auditActionFilter="@Model.Dashboard.Filters.AuditAction" asp-route-auditResultFilter="@Model.Dashboard.Filters.AuditResult">‹</a>
+                @foreach (var pageNumber in BuildPageNumbers(Model.Dashboard.AuditPage, Model.Dashboard.AuditTotalPages))
+                {
+                    if (pageNumber is null)
+                    {
+                        <span class="pagination-ellipsis">…</span>
+                    }
+                    else
+                    {
+                        <a class="btn btn-sm pagination-page @(pageNumber == Model.Dashboard.AuditPage ? "btn-primary" : "btn-outline-light")"
+                           asp-route-auditPage="@pageNumber" asp-route-indexerPage="@Model.Dashboard.IndexerPage"
+                           asp-route-statusFilter="@Model.Dashboard.Filters.Status" asp-route-protocolFilter="@Model.Dashboard.Filters.Protocol"
+                           asp-route-auditDateFilter="@Model.Dashboard.Filters.AuditDate" asp-route-auditActionFilter="@Model.Dashboard.Filters.AuditAction" asp-route-auditResultFilter="@Model.Dashboard.Filters.AuditResult">@pageNumber</a>
+                    }
+                }
                 <a class="btn btn-sm btn-outline-light @(Model.Dashboard.AuditPage >= Model.Dashboard.AuditTotalPages ? "disabled" : string.Empty)"
                    asp-route-auditPage="@(Math.Min(Model.Dashboard.AuditTotalPages, Model.Dashboard.AuditPage + 1))" asp-route-indexerPage="@Model.Dashboard.IndexerPage"
                    asp-route-statusFilter="@Model.Dashboard.Filters.Status" asp-route-protocolFilter="@Model.Dashboard.Filters.Protocol"
                    asp-route-auditDateFilter="@Model.Dashboard.Filters.AuditDate" asp-route-auditActionFilter="@Model.Dashboard.Filters.AuditAction" asp-route-auditResultFilter="@Model.Dashboard.Filters.AuditResult">›</a>
+                <a class="btn btn-sm btn-outline-light @(Model.Dashboard.AuditPage >= Model.Dashboard.AuditTotalPages ? "disabled" : string.Empty)"
+                   asp-route-auditPage="@Model.Dashboard.AuditTotalPages" asp-route-indexerPage="@Model.Dashboard.IndexerPage"
+                   asp-route-statusFilter="@Model.Dashboard.Filters.Status" asp-route-protocolFilter="@Model.Dashboard.Filters.Protocol"
+                   asp-route-auditDateFilter="@Model.Dashboard.Filters.AuditDate" asp-route-auditActionFilter="@Model.Dashboard.Filters.AuditAction" asp-route-auditResultFilter="@Model.Dashboard.Filters.AuditResult">»</a>
             </div>
         </nav>
     }

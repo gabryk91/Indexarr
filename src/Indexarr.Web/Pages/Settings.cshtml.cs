@@ -293,6 +293,8 @@ public sealed class SettingsModel : PageModel
 
         Tab = "notifications";
         Input = (SetupDraft)configuration;
+        // Il form delle notifiche non posta i campi obbligatori delle altre schede.
+        ModelState.Clear();
         ViewData["CurrentLanguage"] = CurrentLanguage;
         var result = await _telegramSender.SendAsync(
             NotificationsInput.TelegramBotToken,
@@ -313,6 +315,8 @@ public sealed class SettingsModel : PageModel
 
         Tab = "notifications";
         Input = (SetupDraft)configuration;
+        // Il form delle notifiche non posta i campi obbligatori delle altre schede.
+        ModelState.Clear();
         ViewData["CurrentLanguage"] = CurrentLanguage;
         var result = await _pushoverSender.SendAsync(
             NotificationsInput.PushoverUserKey,
@@ -333,6 +337,8 @@ public sealed class SettingsModel : PageModel
 
         Tab = "notifications";
         Input = (SetupDraft)configuration;
+        // Il form delle notifiche non posta i campi obbligatori delle altre schede.
+        ModelState.Clear();
         ViewData["CurrentLanguage"] = CurrentLanguage;
         var result = await _gotifySender.SendAsync(
             NotificationsInput.GotifyServerUrl,

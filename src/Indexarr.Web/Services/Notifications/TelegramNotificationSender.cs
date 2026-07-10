@@ -13,6 +13,9 @@ public sealed class TelegramNotificationSender
 
     public async Task<NotificationSendResult> SendAsync(string botToken, string chatId, string message, CancellationToken cancellationToken = default)
     {
+        botToken = botToken.Trim();
+        chatId = chatId.Trim();
+
         if (string.IsNullOrWhiteSpace(botToken) || string.IsNullOrWhiteSpace(chatId))
         {
             return new(false, "Missing bot token or chat id.");
@@ -32,6 +35,11 @@ public sealed class TelegramNotificationSender
             }
 
             var body = await response.Content.ReadAsStringAsync(cancellationToken);
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                return new(false, "Telegram bot token non trovato. Verifica il token copiato da @BotFather e non includere il prefisso 'bot'.");
+            }
+
             return new(false, string.IsNullOrWhiteSpace(body) ? $"HTTP {(int)response.StatusCode}" : $"HTTP {(int)response.StatusCode}: {body}");
         }
         catch (Exception ex)

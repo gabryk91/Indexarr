@@ -178,6 +178,22 @@ public sealed class DatabaseBootstrapper
         await EnsureColumnAsync("AppConfigurations", "AutoAddDefaultFilterByUploader", "TEXT NOT NULL DEFAULT ''", cancellationToken);
         await EnsureColumnAsync("AppConfigurations", "AutoAddDefaultTags", "TEXT NOT NULL DEFAULT ''", cancellationToken);
         await EnsureColumnAsync("IndexerStates", "IsBlocked", "INTEGER NOT NULL DEFAULT 0", cancellationToken);
+        await EnsureColumnAsync("NotificationSettings", "TelegramEnabled", "INTEGER NOT NULL DEFAULT 0", cancellationToken);
+        await EnsureColumnAsync("NotificationSettings", "TelegramBotToken", "TEXT NOT NULL DEFAULT ''", cancellationToken);
+        await EnsureColumnAsync("NotificationSettings", "TelegramChatId", "TEXT NOT NULL DEFAULT ''", cancellationToken);
+        await EnsureColumnAsync("NotificationSettings", "PushoverEnabled", "INTEGER NOT NULL DEFAULT 0", cancellationToken);
+        await EnsureColumnAsync("NotificationSettings", "PushoverUserKey", "TEXT NOT NULL DEFAULT ''", cancellationToken);
+        await EnsureColumnAsync("NotificationSettings", "PushoverApiToken", "TEXT NOT NULL DEFAULT ''", cancellationToken);
+        await EnsureColumnAsync("NotificationSettings", "GotifyEnabled", "INTEGER NOT NULL DEFAULT 0", cancellationToken);
+        await EnsureColumnAsync("NotificationSettings", "GotifyServerUrl", "TEXT NOT NULL DEFAULT ''", cancellationToken);
+        await EnsureColumnAsync("NotificationSettings", "GotifyAppToken", "TEXT NOT NULL DEFAULT ''", cancellationToken);
+        await EnsureColumnAsync("NotificationSettings", "NotifyIndexerAutoDisabled", "INTEGER NOT NULL DEFAULT 1", cancellationToken);
+        await EnsureColumnAsync("NotificationSettings", "NotifyIndexerAutoAdded", "INTEGER NOT NULL DEFAULT 1", cancellationToken);
+        await EnsureColumnAsync("NotificationSettings", "NotifyProwlarrUnreachable", "INTEGER NOT NULL DEFAULT 1", cancellationToken);
+        await EnsureColumnAsync("NotificationSettings", "NotifyBackupCreated", "INTEGER NOT NULL DEFAULT 0", cancellationToken);
+        await EnsureColumnAsync("NotificationSettings", "NotifyRestoreCompleted", "INTEGER NOT NULL DEFAULT 1", cancellationToken);
+        await EnsureColumnAsync("NotificationSettings", "NotifyRollbackError", "INTEGER NOT NULL DEFAULT 1", cancellationToken);
+        await EnsureColumnAsync("NotificationSettings", "UpdatedAtUtc", "TEXT NOT NULL DEFAULT ''", cancellationToken);
     }
 
     private async Task EnsureColumnAsync(string tableName, string columnName, string columnDefinition, CancellationToken cancellationToken)

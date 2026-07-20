@@ -306,9 +306,13 @@ public sealed class ProwlarrApiClient
         };
     }
 
-    public async Task<IndexerHealthViewModel> TestIndexerAsync(SetupDraft configuration, ProwlarrIndexerDto indexer, CancellationToken cancellationToken = default)
+    public async Task<IndexerHealthViewModel> TestIndexerAsync(
+        SetupDraft configuration,
+        ProwlarrIndexerDto indexer,
+        bool testWhenDisabled = false,
+        CancellationToken cancellationToken = default)
     {
-        if (!indexer.Enable)
+        if (!indexer.Enable && !testWhenDisabled)
         {
             return new IndexerHealthViewModel
             {

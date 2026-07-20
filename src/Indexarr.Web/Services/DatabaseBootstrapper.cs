@@ -59,7 +59,8 @@ public sealed class DatabaseBootstrapper
                 ConsecutiveFailures INTEGER NOT NULL,
                 LastCheckedAtUtc TEXT NULL,
                 LastActionAtUtc TEXT NULL,
-                IsBlocked INTEGER NOT NULL DEFAULT 0
+                IsBlocked INTEGER NOT NULL DEFAULT 0,
+                AutoDisabledByHealthCheck INTEGER NOT NULL DEFAULT 0
             );
             """,
             cancellationToken);
@@ -178,6 +179,21 @@ public sealed class DatabaseBootstrapper
         await EnsureColumnAsync("AppConfigurations", "AutoAddDefaultFilterByUploader", "TEXT NOT NULL DEFAULT ''", cancellationToken);
         await EnsureColumnAsync("AppConfigurations", "AutoAddDefaultTags", "TEXT NOT NULL DEFAULT ''", cancellationToken);
         await EnsureColumnAsync("IndexerStates", "IsBlocked", "INTEGER NOT NULL DEFAULT 0", cancellationToken);
+        await EnsureColumnAsync("IndexerStates", "AutoDisabledByHealthCheck", "INTEGER NOT NULL DEFAULT 0", cancellationToken);
+        await _dbContext.Database.ExecuteSqlRawAsync(
+            """
+            UPDATE IndexerStates
+            SET AutoDisabledByHealthCheck = 1
+            WHERE Enabled = 0
+              AND EXISTS (
+                  SELECT 1
+                  FROM AuditLogs
+                  WHERE AuditLogs.IndexerId = IndexerStates.IndexerId
+                    AND AuditLogs.Action = 'AutoDisablePolicy'
+                    AND AuditLogs.Succeeded = 1
+              );
+            """,
+            cancellationToken);
         await EnsureColumnAsync("NotificationSettings", "TelegramEnabled", "INTEGER NOT NULL DEFAULT 0", cancellationToken);
         await EnsureColumnAsync("NotificationSettings", "TelegramBotToken", "TEXT NOT NULL DEFAULT ''", cancellationToken);
         await EnsureColumnAsync("NotificationSettings", "TelegramChatId", "TEXT NOT NULL DEFAULT ''", cancellationToken);

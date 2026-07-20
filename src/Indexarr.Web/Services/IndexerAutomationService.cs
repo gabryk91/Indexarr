@@ -53,7 +53,16 @@ public sealed class IndexerAutomationService
         try
         {
             var indexers = await _apiClient.GetIndexersAsync(configuration, cancellationToken);
-            var tasks = indexers.Select(indexer => _apiClient.TestIndexerAsync(configuration, indexer, cancellationToken));
+            var autoDisabledIndexerIds = await _dbContext.IndexerStates
+                .AsNoTracking()
+                .Where(x => x.AutoDisabledByHealthCheck)
+                .Select(x => x.IndexerId)
+                .ToHashSetAsync(cancellationToken);
+            var tasks = indexers.Select(indexer => _apiClient.TestIndexerAsync(
+                configuration,
+                indexer,
+                autoDisabledIndexerIds.Contains(indexer.Id),
+                cancellationToken));
             var results = await Task.WhenAll(tasks);
             var executedAtUtc = DateTimeOffset.UtcNow;
 
@@ -61,6 +70,7 @@ public sealed class IndexerAutomationService
             {
                 var effectiveResult = await TryRecoverBaseUrlAsync(configuration, result, trigger, cancellationToken);
                 await PersistResultAsync(effectiveResult, executedAtUtc, cancellationToken);
+                await ApplyAutomaticRecoveryAsync(configuration, effectiveResult, trigger, cancellationToken);
                 await ApplyAutomaticPoliciesAsync(configuration, effectiveResult, trigger, cancellationToken);
             }
 
@@ -174,6 +184,7 @@ public sealed class IndexerAutomationService
                 if (state is not null)
                 {
                     state.Enabled = enabled;
+                    state.AutoDisabledByHealthCheck = false;
                     state.IsBlocked = false;
                     state.LastActionAtUtc = DateTimeOffset.UtcNow;
                     await _dbContext.SaveChangesAsync(cancellationToken);
@@ -353,7 +364,7 @@ public sealed class IndexerAutomationService
         state.Name = result.Name;
         state.Protocol = result.Protocol;
         state.Implementation = result.Implementation;
-            state.Enabled = result.Enabled;
+        state.Enabled = result.Enabled;
         state.IsBlocked = false;
         state.LastResult = result.Result;
         state.LastError = result.Error;
@@ -362,6 +373,43 @@ public sealed class IndexerAutomationService
         state.ConsecutiveFailures = result.Result == "FAIL" ? state.ConsecutiveFailures + 1 : 0;
 
         await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    private async Task ApplyAutomaticRecoveryAsync(SetupDraft configuration, IndexerHealthViewModel result, string trigger, CancellationToken cancellationToken)
+    {
+        if (result.Enabled || !string.Equals(result.Result, "OK", StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        var state = await _dbContext.IndexerStates.SingleAsync(x => x.IndexerId == result.Id, cancellationToken);
+        if (!state.AutoDisabledByHealthCheck)
+        {
+            return;
+        }
+
+        if (string.Equals(configuration.Mode, "Apply", StringComparison.OrdinalIgnoreCase))
+        {
+            var update = await SetIndexerEnabledAsync(result.Id, enabled: true, cancellationToken);
+            await _auditLogService.WriteAsync(
+                action: "AutoEnablePolicy",
+                mode: configuration.Mode,
+                succeeded: update.Success,
+                details: $"{trigger}: {update.Message}",
+                indexerId: result.Id,
+                indexerName: result.Name,
+                cancellationToken: cancellationToken);
+            return;
+        }
+
+        await _auditLogService.WriteAsync(
+            action: "AutoEnablePolicyDryRun",
+            mode: configuration.Mode,
+            succeeded: true,
+            details: $"{trigger}: planned enable after a successful health check.",
+            indexerId: result.Id,
+            indexerName: result.Name,
+            cancellationToken: cancellationToken);
     }
 
     private async Task ApplyAutomaticPoliciesAsync(SetupDraft configuration, IndexerHealthViewModel result, string trigger, CancellationToken cancellationToken)
@@ -391,6 +439,13 @@ public sealed class IndexerAutomationService
 
             if (update.Success)
             {
+                var updatedState = await _dbContext.IndexerStates.SingleOrDefaultAsync(x => x.IndexerId == result.Id, cancellationToken);
+                if (updatedState is not null)
+                {
+                    updatedState.AutoDisabledByHealthCheck = true;
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+                }
+
                 await _notificationDispatchService.NotifyAsync(
                     NotificationEvent.IndexerAutoDisabled,
                     string.Format(T(configuration.Language, "NotifyMessageIndexerAutoDisabled"), result.Name, state.ConsecutiveFailures),

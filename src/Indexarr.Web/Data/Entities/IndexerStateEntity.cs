@@ -12,6 +12,8 @@ public sealed class IndexerStateEntity
 
     public bool Enabled { get; set; }
 
+    public bool AutoDisabledByHealthCheck { get; set; }
+
     public string LastResult { get; set; } = string.Empty;
 
     public string LastError { get; set; } = string.Empty;

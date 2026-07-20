@@ -31,7 +31,7 @@ ENV Indexarr__ConfigPath=/config
 ENV Indexarr__BackupPath=/backups
 ENV Indexarr__LogsPath=/logs
 ENV Indexarr__Automation__Enabled=true
-ENV Indexarr__Automation__IntervalMinutes=15
+ENV Indexarr__Automation__IntervalMinutes=60
 
 RUN mkdir -p /config /backups /logs
 

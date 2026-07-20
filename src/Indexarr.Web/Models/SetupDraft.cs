@@ -22,18 +22,18 @@ public sealed class SetupDraft
 
     [Range(1, 20)]
     [Display(Name = "Failure threshold")]
-    public int FailureThreshold { get; set; } = 3;
+    public int FailureThreshold { get; set; } = 4;
 
     [Range(5, 120)]
     [Display(Name = "Health check timeout seconds")]
-    public int HealthCheckTimeoutSeconds { get; set; } = 20;
+    public int HealthCheckTimeoutSeconds { get; set; } = 30;
 
     [Display(Name = "Enable scheduled automation")]
     public bool AutomationEnabled { get; set; } = true;
 
     [Range(1, 1440)]
     [Display(Name = "Automation interval minutes")]
-    public int AutomationIntervalMinutes { get; set; } = 15;
+    public int AutomationIntervalMinutes { get; set; } = 60;
 
     [Display(Name = "Auto backup before changes")]
     public bool BackupBeforeChanges { get; set; } = true;

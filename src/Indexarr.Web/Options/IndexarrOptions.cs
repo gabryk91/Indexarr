@@ -30,5 +30,5 @@ public sealed class AutomationOptions
 {
     public bool Enabled { get; set; } = true;
 
-    public int IntervalMinutes { get; set; } = 15;
+    public int IntervalMinutes { get; set; } = 60;
 }

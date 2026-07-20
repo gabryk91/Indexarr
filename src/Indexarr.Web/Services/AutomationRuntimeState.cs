@@ -6,7 +6,7 @@ public sealed class AutomationRuntimeState
 
     public bool IsEnabled { get; private set; } = true;
 
-    public int IntervalMinutes { get; private set; } = 15;
+    public int IntervalMinutes { get; private set; } = 60;
 
     public bool IsRunning { get; private set; }
 

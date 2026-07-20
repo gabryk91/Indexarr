@@ -154,9 +154,9 @@ public sealed class DatabaseBootstrapper
         await _dbContext.Database.ExecuteSqlRawAsync(
             "CREATE UNIQUE INDEX IF NOT EXISTS IX_AutoAddFailedCandidates_Name ON AutoAddFailedCandidates (Name);",
             cancellationToken);
-        await EnsureColumnAsync("AppConfigurations", "HealthCheckTimeoutSeconds", "INTEGER NOT NULL DEFAULT 20", cancellationToken);
+        await EnsureColumnAsync("AppConfigurations", "HealthCheckTimeoutSeconds", "INTEGER NOT NULL DEFAULT 30", cancellationToken);
         await EnsureColumnAsync("AppConfigurations", "AutomationEnabled", "INTEGER NOT NULL DEFAULT 1", cancellationToken);
-        await EnsureColumnAsync("AppConfigurations", "AutomationIntervalMinutes", "INTEGER NOT NULL DEFAULT 15", cancellationToken);
+        await EnsureColumnAsync("AppConfigurations", "AutomationIntervalMinutes", "INTEGER NOT NULL DEFAULT 60", cancellationToken);
         await EnsureColumnAsync("AppConfigurations", "AutoAddProtocolFilter", "TEXT NOT NULL DEFAULT 'torrent'", cancellationToken);
         await EnsureColumnAsync("AppConfigurations", "AutoAddLanguageFilter", "TEXT NOT NULL DEFAULT 'it,en'", cancellationToken);
         await EnsureColumnAsync("AppConfigurations", "AutoAddCategoryFilter", "TEXT NOT NULL DEFAULT ''", cancellationToken);

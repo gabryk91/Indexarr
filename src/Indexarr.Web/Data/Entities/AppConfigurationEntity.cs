@@ -10,13 +10,13 @@ public sealed class AppConfigurationEntity
 
     public string ServiceMode { get; set; } = "DryRun";
 
-    public int FailureThreshold { get; set; } = 3;
+    public int FailureThreshold { get; set; } = 4;
 
-    public int HealthCheckTimeoutSeconds { get; set; } = 20;
+    public int HealthCheckTimeoutSeconds { get; set; } = 30;
 
     public bool AutomationEnabled { get; set; } = true;
 
-    public int AutomationIntervalMinutes { get; set; } = 15;
+    public int AutomationIntervalMinutes { get; set; } = 60;
 
     public bool BackupBeforeChanges { get; set; } = true;
 

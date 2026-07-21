@@ -49,6 +49,7 @@ public sealed class NotificationDispatchService
         => notificationEvent switch
         {
             NotificationEvent.IndexerAutoDisabled => settings.NotifyIndexerAutoDisabled,
+            NotificationEvent.IndexerAutoEnabled => settings.NotifyIndexerAutoEnabled,
             NotificationEvent.IndexerAutoAdded => settings.NotifyIndexerAutoAdded,
             NotificationEvent.ProwlarrUnreachable => settings.NotifyProwlarrUnreachable,
             NotificationEvent.BackupCreated => settings.NotifyBackupCreated,

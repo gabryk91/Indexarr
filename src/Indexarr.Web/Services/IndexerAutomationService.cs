@@ -399,6 +399,15 @@ public sealed class IndexerAutomationService
                 indexerId: result.Id,
                 indexerName: result.Name,
                 cancellationToken: cancellationToken);
+
+            if (update.Success)
+            {
+                await _notificationDispatchService.NotifyAsync(
+                    NotificationEvent.IndexerAutoEnabled,
+                    string.Format(T(configuration.Language, "NotifyMessageIndexerAutoEnabled"), result.Name),
+                    cancellationToken);
+            }
+
             return;
         }
 

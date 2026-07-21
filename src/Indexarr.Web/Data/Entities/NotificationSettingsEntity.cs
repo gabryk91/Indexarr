@@ -24,6 +24,8 @@ public sealed class NotificationSettingsEntity
 
     public bool NotifyIndexerAutoDisabled { get; set; } = true;
 
+    public bool NotifyIndexerAutoEnabled { get; set; } = true;
+
     public bool NotifyIndexerAutoAdded { get; set; } = true;
 
     public bool NotifyProwlarrUnreachable { get; set; } = true;

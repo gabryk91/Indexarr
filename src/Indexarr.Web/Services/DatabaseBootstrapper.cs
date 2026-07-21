@@ -123,6 +123,7 @@ public sealed class DatabaseBootstrapper
                 GotifyServerUrl TEXT NOT NULL DEFAULT '',
                 GotifyAppToken TEXT NOT NULL DEFAULT '',
                 NotifyIndexerAutoDisabled INTEGER NOT NULL DEFAULT 1,
+                NotifyIndexerAutoEnabled INTEGER NOT NULL DEFAULT 1,
                 NotifyIndexerAutoAdded INTEGER NOT NULL DEFAULT 1,
                 NotifyProwlarrUnreachable INTEGER NOT NULL DEFAULT 1,
                 NotifyBackupCreated INTEGER NOT NULL DEFAULT 0,
@@ -204,6 +205,7 @@ public sealed class DatabaseBootstrapper
         await EnsureColumnAsync("NotificationSettings", "GotifyServerUrl", "TEXT NOT NULL DEFAULT ''", cancellationToken);
         await EnsureColumnAsync("NotificationSettings", "GotifyAppToken", "TEXT NOT NULL DEFAULT ''", cancellationToken);
         await EnsureColumnAsync("NotificationSettings", "NotifyIndexerAutoDisabled", "INTEGER NOT NULL DEFAULT 1", cancellationToken);
+        await EnsureColumnAsync("NotificationSettings", "NotifyIndexerAutoEnabled", "INTEGER NOT NULL DEFAULT 1", cancellationToken);
         await EnsureColumnAsync("NotificationSettings", "NotifyIndexerAutoAdded", "INTEGER NOT NULL DEFAULT 1", cancellationToken);
         await EnsureColumnAsync("NotificationSettings", "NotifyProwlarrUnreachable", "INTEGER NOT NULL DEFAULT 1", cancellationToken);
         await EnsureColumnAsync("NotificationSettings", "NotifyBackupCreated", "INTEGER NOT NULL DEFAULT 0", cancellationToken);

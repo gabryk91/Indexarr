@@ -39,6 +39,7 @@ public sealed class NotificationSettingsService
         entity.GotifyServerUrl = settings.GotifyServerUrl?.Trim() ?? string.Empty;
         entity.GotifyAppToken = settings.GotifyAppToken?.Trim() ?? string.Empty;
         entity.NotifyIndexerAutoDisabled = settings.NotifyIndexerAutoDisabled;
+        entity.NotifyIndexerAutoEnabled = settings.NotifyIndexerAutoEnabled;
         entity.NotifyIndexerAutoAdded = settings.NotifyIndexerAutoAdded;
         entity.NotifyProwlarrUnreachable = settings.NotifyProwlarrUnreachable;
         entity.NotifyBackupCreated = settings.NotifyBackupCreated;
@@ -62,6 +63,7 @@ public sealed class NotificationSettingsService
             GotifyServerUrl = entity.GotifyServerUrl,
             GotifyAppToken = entity.GotifyAppToken,
             NotifyIndexerAutoDisabled = entity.NotifyIndexerAutoDisabled,
+            NotifyIndexerAutoEnabled = entity.NotifyIndexerAutoEnabled,
             NotifyIndexerAutoAdded = entity.NotifyIndexerAutoAdded,
             NotifyProwlarrUnreachable = entity.NotifyProwlarrUnreachable,
             NotifyBackupCreated = entity.NotifyBackupCreated,

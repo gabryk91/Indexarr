@@ -16,10 +16,15 @@
 
     var currentPage = ViewContext.RouteData.Values["page"]?.ToString() ?? string.Empty;
     var isAuthenticated = User.Identity?.IsAuthenticated == true;
-    var prowlarrConnectionClass = ViewData["ProwlarrReachable"] is bool reachable
-        ? (reachable ? "is-connected" : "is-disconnected")
+    var prowlarrReachable = Context.Items["ProwlarrReachable"] is bool itemReachable
+        ? itemReachable
+        : ViewData["ProwlarrReachable"] is bool viewReachable
+            ? viewReachable
+            : (bool?)null;
+    var prowlarrConnectionClass = prowlarrReachable.HasValue
+        ? (prowlarrReachable.Value ? "is-connected" : "is-disconnected")
         : "is-unknown";
-    var prowlarrConnectionLabel = ViewData["ProwlarrReachable"] is bool currentReachability
+    var prowlarrConnectionLabel = prowlarrReachable is bool currentReachability
         ? (currentReachability ? "Prowlarr connesso" : "Prowlarr non raggiungibile")
         : "Stato Prowlarr non disponibile";
     var automationMessageInfo = AutomationRuntime.LastStartedAtUtc is null && AutomationRuntime.LastCompletedAtUtc is null

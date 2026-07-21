@@ -111,6 +111,7 @@ app.Use(async (context, next) =>
         }
 
         var connection = await connectionService.TestAsync(draft.ProwlarrUrl, draft.ProwlarrApiKey, draft.Language, context.RequestAborted);
+        context.Items["ProwlarrReachable"] = connection.Success;
         if (!connection.Success && context.User.Identity?.IsAuthenticated == true)
         {
             context.Response.Redirect("/Setup?reason=prowlarr-unreachable");

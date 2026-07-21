@@ -361,7 +361,7 @@
                             <p class="settings-help">@T("TelegramChatIdHelp")</p>
                         </div>
                     </div>
-                    <div class="settings-submit-row">
+                    <div class="settings-submit-row settings-submit-row-spaced">
                         <button type="submit" formaction="?handler=TestTelegram" class="btn btn-outline-light">@T("TestTelegram")</button>
                     </div>
                 </section>
@@ -497,14 +497,57 @@
                     </div>
                 </form>
 
-                <div class="settings-status-box">
-                    <div class="config-lines">
-                        <span><strong>@T("AutoAddCooldownCount")</strong> @Model.AutoAddCooldownCount</span>
+                <div class="settings-status-box mt-3 mb-3">
+                    <div class="cooldown-summary">
+                        <strong>@T("AutoAddCooldownCount")</strong> @Model.AutoAddCooldownCount
                     </div>
+                    @if (Model.AutoAddCooldownEntries.Count > 0)
+                    {
+                        <div class="cooldown-list-scroll">
+                            <div class="cooldown-list">
+                                @foreach (var entry in Model.AutoAddCooldownEntries)
+                                {
+                                    <div class="cooldown-entry">
+                                        <div class="cooldown-entry-main">
+                                            <strong>@entry.Name</strong>
+                                            <span>@entry.DefinitionName</span>
+                                        </div>
+                                        <div class="cooldown-entry-meta">
+                                            <span>@T("AutoAddCooldownNextRetry"): @entry.NextRetryAtUtc.ToLocalTime().ToString("g")</span>
+                                            <span>@entry.FailureCount @T("AutoAddCooldownFailures")</span>
+                                        </div>
+                                        <form method="post" asp-page-handler="RemoveAutoAddCooldown" class="cooldown-remove-form">
+                                            <input type="hidden" name="id" value="@entry.Id" />
+                                            <input type="hidden" name="Tab" value="maintenance" />
+                                            <button type="submit" class="btn btn-sm btn-outline-light">@T("AutoAddCooldownRemove")</button>
+                                        </form>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                        <nav class="pagination-bar cooldown-pagination" aria-label="@T("PaginationIndexerLabel")">
+                            <span class="pagination-summary">@string.Format(T("PaginationSummary"), Model.CooldownPage, Model.AutoAddCooldownTotalPages, Model.AutoAddCooldownCount)</span>
+                            <div class="pagination-actions">
+                                <a class="btn btn-sm btn-outline-light @(Model.CooldownPage <= 1 ? "disabled" : string.Empty)" asp-route-tab="maintenance" asp-route-cooldownPage="@(Math.Max(1, Model.CooldownPage - 1))">‹</a>
+                                @foreach (var pageNumber in Model.BuildCooldownPageNumbers())
+                                {
+                                    if (pageNumber is null)
+                                    {
+                                        <span class="pagination-ellipsis">…</span>
+                                    }
+                                    else
+                                    {
+                                        <a class="btn btn-sm pagination-page @(pageNumber == Model.CooldownPage ? "btn-primary" : "btn-outline-light")" asp-route-tab="maintenance" asp-route-cooldownPage="@pageNumber">@pageNumber</a>
+                                    }
+                                }
+                                <a class="btn btn-sm btn-outline-light @(Model.CooldownPage >= Model.AutoAddCooldownTotalPages ? "disabled" : string.Empty)" asp-route-tab="maintenance" asp-route-cooldownPage="@(Math.Min(Model.AutoAddCooldownTotalPages, Model.CooldownPage + 1))">›</a>
+                            </div>
+                        </nav>
+                    }
                     <form method="post" asp-page-handler="ClearAutoAddCooldown" class="settings-form">
                         <input type="hidden" asp-for="Tab" value="maintenance" />
                         <div class="settings-submit-row">
-                            <button type="submit" class="btn btn-outline-light">@T("ClearAutoAddCooldown")</button>
+                            <button type="submit" class="btn btn-danger">@T("ClearAutoAddCooldown")</button>
                         </div>
                     </form>
                 </div>

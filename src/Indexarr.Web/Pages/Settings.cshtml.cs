@@ -13,6 +13,7 @@ namespace Indexarr.Web.Pages;
 [Authorize]
 public sealed class SettingsModel : PageModel
 {
+    private const int CooldownPageSize = 8;
     private readonly AppConfigurationService _configurationService;
     private readonly ProwlarrConnectionService _connectionService;
     private readonly AuthService _authService;
@@ -75,6 +76,9 @@ public sealed class SettingsModel : PageModel
     [BindProperty(SupportsGet = true)]
     public string? Tab { get; set; } = "general";
 
+    [BindProperty(SupportsGet = true)]
+    public int CooldownPage { get; set; } = 1;
+
     [TempData]
     public string? FlashMessage { get; set; }
 
@@ -85,6 +89,41 @@ public sealed class SettingsModel : PageModel
     public IReadOnlyList<ProwlarrTagOption> AvailableTags { get; private set; } = [];
 
     public int AutoAddCooldownCount { get; private set; }
+
+    public IReadOnlyList<AutoAddCooldownEntryViewModel> AutoAddCooldownEntries { get; private set; } = [];
+
+    public int AutoAddCooldownTotalPages { get; private set; }
+
+    public IEnumerable<int?> BuildCooldownPageNumbers()
+    {
+        if (AutoAddCooldownTotalPages <= 1)
+        {
+            yield break;
+        }
+
+        var pages = new SortedSet<int> { 1, CooldownPage, AutoAddCooldownTotalPages };
+        if (CooldownPage > 1)
+        {
+            pages.Add(CooldownPage - 1);
+        }
+
+        if (CooldownPage < AutoAddCooldownTotalPages)
+        {
+            pages.Add(CooldownPage + 1);
+        }
+
+        int? previous = null;
+        foreach (var page in pages)
+        {
+            if (previous.HasValue && page - previous.Value > 1)
+            {
+                yield return null;
+            }
+
+            yield return page;
+            previous = page;
+        }
+    }
 
     public string AvailableTagsJson => JsonSerializer.Serialize(AvailableTags);
 
@@ -114,7 +153,7 @@ public sealed class SettingsModel : PageModel
 
         NotificationsInput = await _notificationSettingsService.GetAsync(HttpContext.RequestAborted);
 
-        AutoAddCooldownCount = await _automationService.GetAutoAddCooldownCountAsync(HttpContext.RequestAborted);
+        await LoadAutoAddCooldownAsync();
         return Page();
     }
 
@@ -148,7 +187,7 @@ public sealed class SettingsModel : PageModel
             ResetSelectionData(Input);
         }
 
-        AutoAddCooldownCount = await _automationService.GetAutoAddCooldownCountAsync(HttpContext.RequestAborted);
+        await LoadAutoAddCooldownAsync();
         if (string.Equals(Tab, "protections", StringComparison.OrdinalIgnoreCase))
         {
             Input.AutoAddDefaultTags = SanitizeDefaultTags(Input.AutoAddDefaultTags, AvailableTags);
@@ -361,6 +400,19 @@ public sealed class SettingsModel : PageModel
         Input = (SetupDraft)configuration;
         await _automationService.ClearAutoAddCooldownAsync(HttpContext.RequestAborted);
         FlashMessage = T("AutoAddCooldownCleared");
+        return RedirectToPage(new { tab = "maintenance" });
+    }
+
+    public async Task<IActionResult> OnPostRemoveAutoAddCooldownAsync(int id)
+    {
+        var configuration = await EnsureConfigurationAsync();
+        if (configuration is IActionResult actionResult)
+        {
+            return actionResult;
+        }
+
+        var removed = await _automationService.RemoveAutoAddCooldownAsync(id, HttpContext.RequestAborted);
+        FlashMessage = removed ? T("AutoAddCooldownEntryRemoved") : T("AutoAddCooldownEntryNotFound");
         return RedirectToPage(new { tab = "maintenance" });
     }
 
@@ -732,6 +784,18 @@ public sealed class SettingsModel : PageModel
         }
 
         return warnings;
+    }
+
+    private async Task LoadAutoAddCooldownAsync()
+    {
+        var allEntries = await _automationService.GetAutoAddCooldownEntriesAsync(HttpContext.RequestAborted);
+        AutoAddCooldownCount = allEntries.Count;
+        AutoAddCooldownTotalPages = Math.Max(1, (int)Math.Ceiling(allEntries.Count / (double)CooldownPageSize));
+        CooldownPage = Math.Clamp(CooldownPage, 1, AutoAddCooldownTotalPages);
+        AutoAddCooldownEntries = allEntries
+            .Skip((CooldownPage - 1) * CooldownPageSize)
+            .Take(CooldownPageSize)
+            .ToList();
     }
 
     private string T(string key) => UiTextCatalog.Get(CurrentLanguage, key);

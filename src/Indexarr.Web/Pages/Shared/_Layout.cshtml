@@ -16,6 +16,12 @@
 
     var currentPage = ViewContext.RouteData.Values["page"]?.ToString() ?? string.Empty;
     var isAuthenticated = User.Identity?.IsAuthenticated == true;
+    var prowlarrConnectionClass = ViewData["ProwlarrReachable"] is bool reachable
+        ? (reachable ? "is-connected" : "is-disconnected")
+        : "is-unknown";
+    var prowlarrConnectionLabel = ViewData["ProwlarrReachable"] is bool currentReachability
+        ? (currentReachability ? "Prowlarr connesso" : "Prowlarr non raggiungibile")
+        : "Stato Prowlarr non disponibile";
     var automationMessageInfo = AutomationRuntime.LastStartedAtUtc is null && AutomationRuntime.LastCompletedAtUtc is null
         ? (T("SidebarAutomationMessage"), T("SidebarAutomationNoRunsYet"))
         : FormatAutomationMessage(AutomationRuntime.LastMessage);
@@ -26,8 +32,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Indexarr</title>
     <script type="importmap"></script>
-    <link rel="icon" type="image/x-icon" href="~/favicon.ico" />
-    <link rel="icon" type="image/png" sizes="1254x1254" href="~/images/indexarr_logo.png" asp-append-version="true" />
+    <link rel="icon" type="image/png" sizes="64x64" href="~/images/indexarr_favicon.png" asp-append-version="true" />
     <link rel="apple-touch-icon" href="~/images/indexarr_logo.png" asp-append-version="true" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -74,7 +79,7 @@
                     </span>
                     <a class="sidebar-title" asp-page="/Index">Indexarr</a>
                     <div class="sidebar-brand-actions">
-                        <span class="brand-live-dot" title="@T("SidebarPollingActive")"></span>
+                        <span class="brand-live-dot @prowlarrConnectionClass" title="@prowlarrConnectionLabel"></span>
                         <button type="button" class="theme-toggle" id="themeToggle" data-role="theme-toggle"
                                 data-label-dark="@T("ThemeToggleToDark")"
                                 data-label-light="@T("ThemeToggleToLight")"
@@ -96,15 +101,17 @@
                 </div>
 
                 <section class="sidebar-status-card">
-                    <span class="sidebar-status-label">@T("SidebarAutomationTitle")</span>
-                    <strong class="sidebar-status-value @(AutomationRuntime.IsRunning ? "is-running" : AutomationRuntime.IsEnabled ? "is-idle" : "is-disabled")"
-                            data-role="automation-status-label">
-                        @(AutomationRuntime.IsRunning
-                            ? T("SidebarAutomationInProgress")
-                            : AutomationRuntime.IsEnabled
-                                ? T("SidebarAutomationNextRun")
-                                : T("SidebarAutomationNoSchedule"))
-                    </strong>
+                    <div class="sidebar-status-heading">
+                        <span class="sidebar-status-label">@T("SidebarAutomationTitle")</span>
+                        <strong class="sidebar-status-value sidebar-status-badge @(AutomationRuntime.IsRunning ? "is-running" : AutomationRuntime.IsEnabled ? "is-idle" : "is-disabled")"
+                                data-role="automation-status-label">
+                            @(AutomationRuntime.IsRunning
+                                ? T("SidebarAutomationInProgress")
+                                : AutomationRuntime.IsEnabled
+                                    ? T("SidebarAutomationActive")
+                                    : T("SidebarAutomationNoSchedule"))
+                        </strong>
+                    </div>
                     <div class="sidebar-automation-hero"
                          id="automationCountdown"
                          data-enabled="@AutomationRuntime.IsEnabled.ToString().ToLowerInvariant()"
@@ -112,6 +119,7 @@
                          data-interval-seconds="@(Math.Max(1, AutomationRuntime.IntervalMinutes) * 60)"
                          data-next-run-utc="@AutomationRuntime.NextScheduledAtUtc?.ToString("O")"
                          data-label-next="@T("SidebarAutomationNextRun")"
+                         data-label-active="@T("SidebarAutomationActive")"
                          data-label-due="@T("SidebarAutomationDueNow")"
                          data-label-running="@T("SidebarAutomationInProgress")"
                          data-label-disabled="@T("SidebarAutomationNoSchedule")"
@@ -136,8 +144,8 @@
                 </section>
 
                 <nav class="sidebar-nav">
-                    <a class="sidebar-link @(currentPage == "/Index" ? "is-active" : string.Empty)" asp-page="/Index">@T("NavDashboard")</a>
-                    <a class="sidebar-link @(currentPage == "/Settings" ? "is-active" : string.Empty)" asp-page="/Settings">@T("NavSettings")</a>
+                    <a class="sidebar-link @(currentPage == "/Index" ? "is-active" : string.Empty)" asp-page="/Index">@await Html.PartialAsync("_Icon", "dashboard")<span>@T("NavDashboard")</span></a>
+                    <a class="sidebar-link @(currentPage == "/Settings" ? "is-active" : string.Empty)" asp-page="/Settings">@await Html.PartialAsync("_Icon", "settings")<span>@T("NavSettings")</span></a>
                 </nav>
 
                 <div class="sidebar-auth">
@@ -175,6 +183,9 @@
             <div class="processing-spinner"></div>
             <h2 id="globalBusyTitle">@T("BusyTitle")</h2>
             <p>@T("BusyText")</p>
+            <p class="processing-countdown" data-role="processing-countdown" aria-live="polite" hidden>
+                @T("BusyCountdownPrefix") <strong data-role="processing-countdown-value">--:--</strong>
+            </p>
         </div>
     </div>
 

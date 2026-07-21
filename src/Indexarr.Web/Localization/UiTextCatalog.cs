@@ -143,7 +143,8 @@ public static class UiTextCatalog
         ["AuditLogSectionDescription"] = "Cronologia delle operazioni, dei controlli e degli errori registrati.",
         ["PaginationAuditLabel"] = "Paginazione registro audit",
         ["NoAuditLogs"] = "Nessuna azione registrata.",
-        ["SidebarAutomationTitle"] = "Stato pianificazione",
+        ["SidebarAutomationTitle"] = "Automazione",
+        ["SidebarAutomationActive"] = "Attiva",
         ["SidebarAutomationRunning"] = "In esecuzione",
         ["SidebarAutomationIdle"] = "In attesa",
         ["SidebarAutomationDisabled"] = "Disattivato",
@@ -290,6 +291,11 @@ public static class UiTextCatalog
         ["AutoAddCooldownTitle"] = "Indexer in cooldown",
         ["AutoAddCooldownLead"] = "Indexer che hanno fallito un tentativo di aggiunta automatica e sono temporaneamente esclusi dai prossimi cicli.",
         ["AutoAddCooldownCount"] = "Indexer attualmente in cooldown:",
+        ["AutoAddCooldownNextRetry"] = "Prossimo tentativo",
+        ["AutoAddCooldownFailures"] = "fallimenti",
+        ["AutoAddCooldownRemove"] = "Rimuovi",
+        ["AutoAddCooldownEntryRemoved"] = "Indexer rimosso dal cooldown.",
+        ["AutoAddCooldownEntryNotFound"] = "Indexer cooldown non trovato.",
         ["ClearAutoAddCooldown"] = "Svuota lista cooldown",
         ["AutoAddCooldownCleared"] = "Lista cooldown svuotata.",
         ["AutoAddDefaultQueryLimit"] = "Limite query predefinito",
@@ -329,7 +335,8 @@ public static class UiTextCatalog
         ["NoIndexers"] = "Nessun indexer disponibile.",
         ["DashboardError"] = "Impossibile caricare i dati live da Prowlarr.",
         ["BusyTitle"] = "Operazione in corso",
-        ["BusyText"] = "Attendi il completamento della richiesta."
+        ["BusyText"] = "Attendi il completamento della richiesta.",
+        ["BusyCountdownPrefix"] = "Tempo massimo richiesta:"
     };
 
     private static readonly IReadOnlyDictionary<string, string> English = new Dictionary<string, string>
@@ -473,7 +480,8 @@ public static class UiTextCatalog
         ["AuditLogSectionDescription"] = "History of operations, checks, and errors that were logged.",
         ["PaginationAuditLabel"] = "Audit log pagination",
         ["NoAuditLogs"] = "No actions recorded.",
-        ["SidebarAutomationTitle"] = "Cron status",
+        ["SidebarAutomationTitle"] = "Automation",
+        ["SidebarAutomationActive"] = "Active",
         ["SidebarAutomationRunning"] = "Running",
         ["SidebarAutomationIdle"] = "Idle",
         ["SidebarAutomationDisabled"] = "Disabled",
@@ -620,6 +628,11 @@ public static class UiTextCatalog
         ["AutoAddCooldownTitle"] = "Indexers on cooldown",
         ["AutoAddCooldownLead"] = "Indexers that failed an auto-add attempt and are temporarily excluded from the next cycles.",
         ["AutoAddCooldownCount"] = "Indexers currently on cooldown:",
+        ["AutoAddCooldownNextRetry"] = "Next retry",
+        ["AutoAddCooldownFailures"] = "failures",
+        ["AutoAddCooldownRemove"] = "Remove",
+        ["AutoAddCooldownEntryRemoved"] = "Indexer removed from cooldown.",
+        ["AutoAddCooldownEntryNotFound"] = "Cooldown indexer not found.",
         ["ClearAutoAddCooldown"] = "Clear cooldown list",
         ["AutoAddCooldownCleared"] = "Cooldown list cleared.",
         ["AutoAddDefaultQueryLimit"] = "Default query limit",
@@ -659,7 +672,8 @@ public static class UiTextCatalog
         ["NoIndexers"] = "No indexers available.",
         ["DashboardError"] = "Unable to load live data from Prowlarr.",
         ["BusyTitle"] = "Operation in progress",
-        ["BusyText"] = "Wait for the request to finish. The interface stays blocked until Prowlarr responds."
+        ["BusyText"] = "Wait for the request to finish. The interface stays blocked until Prowlarr responds.",
+        ["BusyCountdownPrefix"] = "Maximum request time:"
     };
 
     public static string Normalize(string? language)

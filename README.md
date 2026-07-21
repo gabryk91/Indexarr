@@ -55,6 +55,18 @@ docker run -d \
 
 Poi apri `http://localhost:9697`.
 
+#### `Aggiornare Indexarr`
+
+Per aggiornare un'installazione Docker:
+
+```bash
+docker pull gabryk83/indexarr:latest
+docker stop indexarr
+docker rm indexarr
+```
+
+Poi ricrea il container usando il comando `docker run` del paragrafo precedente. Le configurazioni e i dati restano disponibili nelle cartelle montate (`/config`, `/backups`, `/logs`). Su Unraid usa `Check for Updates` e poi `Update` nel container.
+
 #### `Unraid`
 
 E' disponibile un template pronto per Unraid in [unraid/Indexarr.xml](unraid/Indexarr.xml).
@@ -167,6 +179,18 @@ docker run -d \
 ```
 
 Then open `http://localhost:9697`.
+
+#### `Updating Indexarr`
+
+To update a Docker installation:
+
+```bash
+docker pull gabryk83/indexarr:latest
+docker stop indexarr
+docker rm indexarr
+```
+
+Then recreate the container using the `docker run` command from the previous section. Configuration and data remain available in the mounted folders (`/config`, `/backups`, `/logs`). On Unraid, use `Check for Updates` and then `Update` for the container.
 
 #### `Local development`
 

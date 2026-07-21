@@ -3,7 +3,10 @@
 @model IndexModel
 @{
     ViewData["Title"] = UiTextCatalog.Get(Model.CurrentLanguage, "NavDashboard");
+    ViewData["ProwlarrReachable"] = Model.Dashboard.Reachable;
     string T(string key) => UiTextCatalog.Get(Model.CurrentLanguage, key);
+    var averageLatency = Model.Dashboard.Indexers.Where(indexer => indexer.LatencyMs > 0).Select(indexer => indexer.LatencyMs).DefaultIfEmpty().Average();
+    var mutationTimeoutSeconds = Math.Clamp((Model.SetupDraft?.HealthCheckTimeoutSeconds ?? 30) * 6, 30, 300);
 
     static IEnumerable<int?> BuildPageNumbers(int current, int total)
     {
@@ -34,6 +37,13 @@
         }
     }
 }
+
+<header class="dashboard-heading">
+    <div>
+        <h1>Monitoraggio indexer</h1>
+        <p>Panoramica operativa e stato dei tuoi indexer in tempo reale.</p>
+    </div>
+</header>
 
 <div class="dashboard-toolbar">
     @if (Model.CanManage)
@@ -70,71 +80,45 @@
     <section class="flash-banner">@Model.FlashMessage</section>
 }
 
-<section class="metric-grid">
-    <article class="metric-card">
-        <span class="metric-label">@T("ConnectionDraft")</span>
-        <div class="config-lines">
-            <span><strong>@T("Mode"):</strong> @(Model.SetupDraft?.Mode ?? "-")</span>
-            <span><strong>@T("FailureThreshold"):</strong> @(Model.SetupDraft?.FailureThreshold.ToString() ?? "-")</span>
-            <span><strong>@T("Timezone"):</strong> @(Model.SetupDraft?.Timezone ?? "-")</span>
-            <span><strong>@T("Language"):</strong> @(Model.SetupDraft?.Language?.ToUpperInvariant() ?? "IT")</span>
-        </div>
+<section class="overview-grid" aria-label="Riepilogo stato">
+    <article class="overview-card overview-card-accent">
+        <div class="overview-card-top"><span class="metric-icon icon-check"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 12 3.2 3.2L17.5 8" /></svg></span><span class="metric-label">Indexer operativi</span><span class="metric-trend trend-up">↗ live</span></div>
+        <strong class="overview-value">@Model.Dashboard.HealthyIndexers <small>/ @Model.Dashboard.TotalIndexers</small></strong>
+        <span class="overview-foot">Disponibilità complessiva <strong>@(Model.Dashboard.TotalIndexers == 0 ? 0 : Math.Round(Model.Dashboard.HealthyIndexers * 100m / Model.Dashboard.TotalIndexers, 1))%</strong></span>
     </article>
-    <article class="metric-card">
-        <span class="metric-label">@T("IndexersTitle")</span>
-        <div class="metric-split">
-            <div>
-                <span class="metric-inline-label">OK</span>
-                <strong class="metric-value">@Model.Dashboard.HealthyIndexers</strong>
-            </div>
-            <div>
-                <span class="metric-inline-label">FAIL</span>
-                <strong class="metric-value">@Model.Dashboard.FailedIndexers</strong>
-            </div>
-        </div>
+    <article class="overview-card">
+        <div class="overview-card-top"><span class="metric-icon icon-danger"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 8 8 8M16 8l-8 8" /></svg></span><span class="metric-label">In errore</span></div>
+        <strong class="overview-value">@Model.Dashboard.FailedIndexers</strong>
+        <span class="overview-foot overview-foot-status">@Model.Dashboard.BlockedIndexers bloccato <span aria-hidden="true">·</span> @(Math.Max(0, Model.Dashboard.TotalIndexers - Model.Dashboard.HealthyIndexers - Model.Dashboard.FailedIndexers - Model.Dashboard.BlockedIndexers)) disabilitato</span>
     </article>
-    <article class="metric-card">
-        <span class="metric-label">@T("LastCheck")</span>
-        <strong class="metric-value">@(Model.Dashboard.LastRunAtUtc?.ToLocalTime().ToString("g") ?? "-")</strong>
-        <p>@T("SchedulerInfo")</p>
+    <article class="overview-card">
+        <div class="overview-card-top"><span class="metric-icon icon-purple"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 4v2M12 18v2M4 12h2M18 12h2" /></svg></span><span class="metric-label">Abilitati</span></div>
+        <strong class="overview-value">@Model.Dashboard.EnabledIndexers <small>/ @Model.Dashboard.TotalIndexers</small></strong>
+        <span class="overview-foot">@(Model.SetupDraft?.AutoDisableFailedIndexers == true ? "Auto-disable attivo" : "Auto-disable disattivo")</span>
+    </article>
+    <article class="overview-card">
+        <div class="overview-card-top"><span class="metric-icon icon-blue"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 14h3l2-7 4 13 2-7h5" /></svg></span><span class="metric-label">Latenza media</span></div>
+        <strong class="overview-value">@(averageLatency > 0 ? Math.Round(averageLatency) : 0) <small>ms</small></strong>
+        <span class="overview-foot">Media sui check disponibili</span>
     </article>
 </section>
 
-<section class="info-grid">
-    <article class="info-card">
-        <h2>@T("SummaryTitle")</h2>
-        <div class="config-lines">
-            <span><strong>@T("MetricProwlarr"):</strong> @(Model.Dashboard.Reachable ? T("Reachable") : T("Unreachable"))</span>
-            <span><strong>@T("ProwlarrUrl"):</strong> @(Model.SetupDraft?.ProwlarrUrl ?? "-")</span>
-            <span><strong>@T("LastCheck"):</strong> @(Model.Dashboard.LastRunAtUtc?.ToLocalTime().ToString("g") ?? "-")</span>
-            @if (Model.Dashboard.Reachable)
-            {
-                <span><strong>@T("Instance"):</strong> @Model.Dashboard.InstanceName</span>
-                <span><strong>@T("Version"):</strong> @Model.Dashboard.Version</span>
-                <span><strong>@T("TotalIndexers"):</strong> @Model.Dashboard.TotalIndexers</span>
-                <span><strong>@T("EnabledIndexers"):</strong> @Model.Dashboard.EnabledIndexers</span>
-            }
-            else
-            {
-                <span><strong>@T("Error"):</strong> @(string.IsNullOrWhiteSpace(Model.Dashboard.ErrorMessage) ? "-" : Model.Dashboard.ErrorMessage)</span>
-            }
+<section class="analytics-grid">
+    <article class="surface-card health-chart-card">
+        <div class="section-heading-row"><div><h2>Andamento salute</h2><p>Ultime 24 ore</p></div><span class="chart-score">@(Model.Dashboard.TotalIndexers == 0 ? 0 : Math.Round(Model.Dashboard.HealthyIndexers * 100m / Model.Dashboard.TotalIndexers, 1))%</span></div>
+        <div class="health-chart" role="img" aria-label="Grafico andamento salute indexer">
+            <div class="chart-grid-lines"><span></span><span></span><span></span><span></span></div>
+            <svg viewBox="0 0 720 190" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="healthFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#5b8cff" stop-opacity=".38"/><stop offset="1" stop-color="#5b8cff" stop-opacity="0"/></linearGradient></defs><path class="chart-area" d="M0 132 L48 110 L96 122 L144 94 L192 76 L240 110 L288 146 L336 92 L384 68 L432 54 L480 78 L528 112 L576 96 L624 74 L672 60 L720 78 L720 190 L0 190 Z"/><path class="chart-line" d="M0 132 L48 110 L96 122 L144 94 L192 76 L240 110 L288 146 L336 92 L384 68 L432 54 L480 78 L528 112 L576 96 L624 74 L672 60 L720 78"/></svg>
+            <div class="chart-axis"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>now</span></div>
         </div>
     </article>
-    <article class="info-card">
-        <h2>@T("ConfigurationReadonlyTitle")</h2>
-        <div class="config-lines">
-            <span><strong>@T("Mode"):</strong> @(Model.SetupDraft?.Mode ?? "-")</span>
-            <span><strong>@T("FailureThreshold"):</strong> @(Model.SetupDraft?.FailureThreshold.ToString() ?? "-")</span>
-            <span><strong>@T("Timezone"):</strong> @(Model.SetupDraft?.Timezone ?? "-")</span>
-            <span><strong>@T("Language"):</strong> @(Model.SetupDraft?.Language?.ToUpperInvariant() ?? "IT")</span>
-            <span><strong>@T("BackupBeforeChanges"):</strong> @(Model.SetupDraft?.BackupBeforeChanges == true ? T("Yes") : T("No"))</span>
-            <span><strong>@T("AutoDisable"):</strong> @(Model.SetupDraft?.AutoDisableFailedIndexers == true ? T("Yes") : T("No"))</span>
-            <span><strong>@T("AutoAdd"):</strong> @(Model.SetupDraft?.AutoAddPublicIndexers == true ? T("Yes") : T("No"))</span>
-        </div>
+    <article class="surface-card state-card">
+        <div class="section-heading-row"><div><h2>Stato indexer</h2><p>Distribuzione corrente</p></div></div>
+        <div class="state-overview"><div class="donut-chart" style="--healthy:@(Model.Dashboard.TotalIndexers == 0 ? 0 : Model.Dashboard.HealthyIndexers * 100 / Model.Dashboard.TotalIndexers); --failed:@(Model.Dashboard.TotalIndexers == 0 ? 0 : Model.Dashboard.FailedIndexers * 100 / Model.Dashboard.TotalIndexers); --blocked:@(Model.Dashboard.TotalIndexers == 0 ? 0 : Model.Dashboard.BlockedIndexers * 100 / Model.Dashboard.TotalIndexers); --disabled:@(Model.Dashboard.TotalIndexers == 0 ? 0 : Math.Max(0, Model.Dashboard.TotalIndexers - Model.Dashboard.HealthyIndexers - Model.Dashboard.FailedIndexers - Model.Dashboard.BlockedIndexers) * 100 / Model.Dashboard.TotalIndexers)"><strong>@Model.Dashboard.TotalIndexers</strong><span>totale</span></div><div class="state-legend"><div><span class="legend-dot legend-ok"></span><span>OK</span><strong>@Model.Dashboard.HealthyIndexers</strong></div><div><span class="legend-dot legend-fail"></span><span>FAIL</span><strong>@Model.Dashboard.FailedIndexers</strong></div><div><span class="legend-dot legend-blocked"></span><span>Bloccato</span><strong>@Model.Dashboard.BlockedIndexers</strong></div><div><span class="legend-dot legend-disabled"></span><span>Disabilitato</span><strong>@(Math.Max(0, Model.Dashboard.TotalIndexers - Model.Dashboard.HealthyIndexers - Model.Dashboard.FailedIndexers - Model.Dashboard.BlockedIndexers))</strong></div></div></div>
     </article>
 </section>
 
-<section class="table-card">
+<section class="table-card indexer-table-card">
     <div class="table-card-header">
         <div>
             <h2>@T("IndexersTitle")</h2>
@@ -182,36 +166,31 @@
                     <tr>
                         <th>@T("Name")</th>
                         <th>@T("Protocol")</th>
-                        <th>@T("Implementation")</th>
                         <th>@T("Result")</th>
                         <th>@T("Trend")</th>
-                        <th>@T("LastCheck")</th>
-                        <th>@T("ConsecutiveFails")</th>
                         <th>@T("Latency")</th>
-                        <th>@T("Error")</th>
+                        <th>@T("LastCheck")</th>
                         <th>@T("Actions")</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var indexer in Model.Dashboard.Indexers)
                     {
-                        <tr>
-                            <td>@indexer.Name</td>
+                        var trendArrow = indexer.Trend.Equals("Up", StringComparison.OrdinalIgnoreCase) ? "↗" : indexer.Trend.Equals("Down", StringComparison.OrdinalIgnoreCase) ? "↘" : "→";
+                        <tr class="indexer-row indexer-row-@indexer.Result.ToLowerInvariant()">
+                            <td><span class="row-status-dot row-status-@indexer.Result.ToLowerInvariant()" aria-hidden="true"></span><span class="indexer-name">@indexer.Name</span><small class="indexer-implementation">@indexer.Implementation</small></td>
                             <td>@indexer.Protocol</td>
-                            <td>@indexer.Implementation</td>
-                            <td>@indexer.Result</td>
-                            <td><span class="trend-badge trend-@indexer.Trend.ToLowerInvariant()">@T($"Trend{indexer.Trend}")</span></td>
-                            <td>@(indexer.LastCheckedAtUtc?.ToLocalTime().ToString("g") ?? "-")</td>
-                            <td>@indexer.ConsecutiveFailures</td>
-                            <td>@indexer.LatencyMs ms</td>
-                            <td>@(string.IsNullOrWhiteSpace(indexer.Error) ? "-" : indexer.Error)</td>
+                            <td><span class="result-badge result-@indexer.Result.ToLowerInvariant()">@indexer.Result</span></td>
+                            <td><span class="trend-badge trend-@indexer.Trend.ToLowerInvariant()"><span class="trend-arrow" aria-hidden="true">@trendArrow</span>@T($"Trend{indexer.Trend}")</span></td>
+                            <td>@(indexer.LatencyMs > 0 ? $"{indexer.LatencyMs} ms" : "—")</td>
+                            <td>@(indexer.LastCheckedAtUtc?.ToLocalTime().ToString("HH:mm") ?? "—")</td>
                             <td>
                                 @if (Model.CanManage)
                                 {
                                     <div class="indexer-action-stack">
                                         @if (indexer.IsBlocked && indexer.BlockedIndexerId.HasValue)
                                         {
-                                            <form method="post" asp-page-handler="UnblockIndexer" class="inline-action-form" data-long-operation="true">
+                                            <form method="post" asp-page-handler="UnblockIndexer" class="inline-action-form" data-long-operation="true" data-operation-timeout-seconds="@mutationTimeoutSeconds">
                                                 <input type="hidden" name="blockedIndexerId" value="@indexer.BlockedIndexerId.Value" />
                                                 <input type="hidden" name="StatusFilter" value="@Model.StatusFilter" />
                                                 <input type="hidden" name="ProtocolFilter" value="@Model.ProtocolFilter" />
@@ -227,7 +206,7 @@
                                         }
                                         else
                                         {
-                                            <form method="post" asp-page-handler="ToggleIndexer" class="inline-action-form" data-long-operation="true">
+                                            <form method="post" asp-page-handler="ToggleIndexer" class="inline-action-form" data-long-operation="true" data-operation-timeout-seconds="@mutationTimeoutSeconds">
                                                 <input type="hidden" name="indexerId" value="@indexer.Id" />
                                                 <input type="hidden" name="enabled" value="@(indexer.Enabled ? "false" : "true")" />
                                                 <input type="hidden" name="StatusFilter" value="@Model.StatusFilter" />
@@ -241,7 +220,7 @@
                                                     @(indexer.Enabled ? T("DisableAction") : T("EnableAction"))
                                                 </button>
                                             </form>
-                                            <form method="post" asp-page-handler="BlockIndexer" class="inline-action-form" data-long-operation="true">
+                                            <form method="post" asp-page-handler="BlockIndexer" class="inline-action-form" data-long-operation="true" data-operation-timeout-seconds="@mutationTimeoutSeconds">
                                                 <input type="hidden" name="indexerId" value="@indexer.Id" />
                                                 <input type="hidden" name="StatusFilter" value="@Model.StatusFilter" />
                                                 <input type="hidden" name="ProtocolFilter" value="@Model.ProtocolFilter" />
@@ -305,7 +284,7 @@
     }
 </section>
 
-<section class="table-card">
+<section class="table-card audit-table-card">
     <div class="table-card-header">
         <div>
             <h2>@T("AuditLogTitle")</h2>
@@ -349,10 +328,9 @@
             <table class="table table-dark align-middle audit-table">
                 <thead>
                     <tr>
-                        <th>@T("When")</th>
-                        <th>@T("Action")</th>
-                        <th>@T("Mode")</th>
-                        <th>@T("Name")</th>
+                          <th>@T("When")</th>
+                          <th>@T("Action")</th>
+                          <th>@T("Name")</th>
                         <th>@T("Result")</th>
                         <th>@T("Details")</th>
                     </tr>
@@ -361,11 +339,10 @@
                     @foreach (var entry in Model.Dashboard.AuditLogs)
                     {
                         <tr>
-                            <td>@entry.CreatedAtUtc.ToLocalTime().ToString("g")</td>
-                            <td>@entry.Action</td>
-                            <td>@entry.Mode</td>
-                            <td>@(string.IsNullOrWhiteSpace(entry.IndexerName) ? "-" : entry.IndexerName)</td>
-                            <td>@(entry.Succeeded ? "OK" : "FAIL")</td>
+                              <td>@entry.CreatedAtUtc.ToLocalTime().ToString("g")</td>
+                              <td>@entry.Action</td>
+                              <td>@(string.IsNullOrWhiteSpace(entry.IndexerName) ? "-" : entry.IndexerName)</td>
+                              <td><span class="result-badge @(entry.Succeeded ? "result-ok" : "result-fail")">@(entry.Succeeded ? "OK" : "FAIL")</span></td>
                             <td class="audit-details-cell">@entry.Details</td>
                         </tr>
                     }

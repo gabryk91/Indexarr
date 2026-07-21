@@ -735,7 +735,47 @@ public sealed class IndexerAutomationService
     }
 
     public async Task<int> GetAutoAddCooldownCountAsync(CancellationToken cancellationToken = default)
-        => await _dbContext.AutoAddFailedCandidates.CountAsync(cancellationToken);
+    {
+        var now = DateTimeOffset.UtcNow;
+        var retryTimes = await _dbContext.AutoAddFailedCandidates
+            .AsNoTracking()
+            .Select(x => x.NextRetryAtUtc)
+            .ToListAsync(cancellationToken);
+        return retryTimes.Count(retryAt => retryAt > now);
+    }
+
+    public async Task<IReadOnlyList<AutoAddCooldownEntryViewModel>> GetAutoAddCooldownEntriesAsync(CancellationToken cancellationToken = default)
+    {
+        var now = DateTimeOffset.UtcNow;
+        var entries = await _dbContext.AutoAddFailedCandidates
+            .AsNoTracking()
+            .Select(x => new AutoAddCooldownEntryViewModel
+            {
+                Id = x.Id,
+                Name = x.Name,
+                DefinitionName = x.DefinitionName,
+                FailureCount = x.FailureCount,
+                NextRetryAtUtc = x.NextRetryAtUtc
+            })
+            .ToListAsync(cancellationToken);
+        return entries
+            .Where(entry => entry.NextRetryAtUtc > now)
+            .OrderBy(entry => entry.NextRetryAtUtc)
+            .ToList();
+    }
+
+    public async Task<bool> RemoveAutoAddCooldownAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var entry = await _dbContext.AutoAddFailedCandidates.SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
+        if (entry is null)
+        {
+            return false;
+        }
+
+        _dbContext.AutoAddFailedCandidates.Remove(entry);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        return true;
+    }
 
     public async Task ClearAutoAddCooldownAsync(CancellationToken cancellationToken = default)
     {

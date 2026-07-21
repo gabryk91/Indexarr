@@ -111,6 +111,37 @@ document.addEventListener("DOMContentLoaded", () => {
             busyOverlay.setAttribute("aria-hidden", "false");
         };
 
+        const countdownLabel = busyOverlay.querySelector("[data-role='processing-countdown']");
+        const countdownValue = busyOverlay.querySelector("[data-role='processing-countdown-value']");
+        let operationCountdownTimer;
+
+        const formatOperationTime = (seconds) => {
+            const total = Math.max(0, Math.ceil(seconds));
+            const minutes = Math.floor(total / 60);
+            const remainingSeconds = total % 60;
+            return `${String(minutes).padStart(2, "0")}:${String(remainingSeconds).padStart(2, "0")}`;
+        };
+
+        const startOperationCountdown = (form) => {
+            const timeoutSeconds = Number.parseInt(form.dataset.operationTimeoutSeconds ?? "", 10);
+            if (!Number.isFinite(timeoutSeconds) || timeoutSeconds <= 0 || !countdownLabel || !countdownValue) {
+                return;
+            }
+
+            window.clearInterval(operationCountdownTimer);
+            const startedAt = Date.now();
+            countdownLabel.hidden = false;
+            countdownValue.textContent = formatOperationTime(timeoutSeconds);
+            operationCountdownTimer = window.setInterval(() => {
+                const elapsedSeconds = (Date.now() - startedAt) / 1000;
+                const remaining = timeoutSeconds - elapsedSeconds;
+                countdownValue.textContent = formatOperationTime(remaining);
+                if (remaining <= 0) {
+                    window.clearInterval(operationCountdownTimer);
+                }
+            }, 250);
+        };
+
         const trackedForms = document.querySelectorAll("form[data-long-operation='true']");
         trackedForms.forEach((form) => {
             form.addEventListener("submit", () => {
@@ -120,6 +151,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
 
                 showBusyOverlay();
+                startOperationCountdown(form);
             });
         });
     }
@@ -139,6 +171,7 @@ document.addEventListener("DOMContentLoaded", () => {
         let nextRunUtc = countdownRoot.dataset.nextRunUtc ? Date.parse(countdownRoot.dataset.nextRunUtc) : Number.NaN;
 
         const nextLabel = countdownRoot.dataset.labelNext ?? "Next run";
+        const activeLabel = countdownRoot.dataset.labelActive ?? "Active";
         const dueLabel = countdownRoot.dataset.labelDue ?? "Due";
         const runningLabel = countdownRoot.dataset.labelRunning ?? "In progress";
         const disabledLabel = countdownRoot.dataset.labelDisabled ?? "No schedule";
@@ -235,7 +268,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const remainingSeconds = Math.max(0, (nextRunUtc - Date.now()) / 1000);
             const progress = remainingSeconds / intervalSeconds;
             valueNode.textContent = remainingSeconds <= 0 ? "00:00" : formatRemaining(remainingSeconds);
-            labelNode.textContent = remainingSeconds <= 0 ? dueLabel : nextLabel;
+            labelNode.textContent = remainingSeconds <= 0 ? dueLabel : activeLabel;
             labelNode.classList.remove("is-running", "is-disabled");
             labelNode.classList.add("is-idle");
 

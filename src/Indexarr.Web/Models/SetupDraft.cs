@@ -48,7 +48,7 @@ public sealed class SetupDraft
     public string AutoAddProtocolFilter { get; set; } = "torrent";
 
     [Display(Name = "Auto-add language filter")]
-    public string AutoAddLanguageFilter { get; set; } = "it,en";
+    public string AutoAddLanguageFilter { get; set; } = "en-GB,en-US";
 
     [Display(Name = "Auto-add category filter")]
     public string AutoAddCategoryFilter { get; set; } = string.Empty;

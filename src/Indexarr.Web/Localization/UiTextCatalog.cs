@@ -340,7 +340,26 @@ public static class UiTextCatalog
         ["DashboardError"] = "Impossibile caricare i dati live da Prowlarr.",
         ["BusyTitle"] = "Operazione in corso",
         ["BusyText"] = "Attendi il completamento della richiesta.",
-        ["BusyCountdownPrefix"] = "Tempo massimo richiesta:"
+        ["BusyCountdownPrefix"] = "Tempo massimo richiesta:",
+        ["DashboardHeading"] = "Monitoraggio indexer",
+        ["DashboardSubheading"] = "Panoramica operativa e stato dei tuoi indexer in tempo reale.",
+        ["OverviewSummaryAria"] = "Riepilogo stato",
+        ["MetricHealthyIndexers"] = "Indexer operativi",
+        ["MetricOverallAvailability"] = "Disponibilità complessiva",
+        ["MetricFailingIndexers"] = "In errore",
+        ["OverviewBlockedSuffix"] = "bloccato",
+        ["OverviewDisabledSuffix"] = "disabilitato",
+        ["MetricEnabledIndexers"] = "Abilitati",
+        ["AutoDisableActive"] = "Auto-disable attivo",
+        ["AutoDisableInactive"] = "Auto-disable disattivo",
+        ["MetricAvgLatency"] = "Latenza media",
+        ["MetricAvgLatencyFoot"] = "Media sui check disponibili",
+        ["HealthTrendTitle"] = "Andamento salute",
+        ["Last24Hours"] = "Ultime 24 ore",
+        ["HealthChartAria"] = "Grafico andamento salute indexer",
+        ["IndexerStateTitle"] = "Stato indexer",
+        ["CurrentDistribution"] = "Distribuzione corrente",
+        ["TotalLabel"] = "totale"
     };
 
     private static readonly IReadOnlyDictionary<string, string> English = new Dictionary<string, string>
@@ -681,7 +700,26 @@ public static class UiTextCatalog
         ["DashboardError"] = "Unable to load live data from Prowlarr.",
         ["BusyTitle"] = "Operation in progress",
         ["BusyText"] = "Wait for the request to finish. The interface stays blocked until Prowlarr responds.",
-        ["BusyCountdownPrefix"] = "Maximum request time:"
+        ["BusyCountdownPrefix"] = "Maximum request time:",
+        ["DashboardHeading"] = "Indexer monitoring",
+        ["DashboardSubheading"] = "Real-time operational overview and status of your indexers.",
+        ["OverviewSummaryAria"] = "Status summary",
+        ["MetricHealthyIndexers"] = "Healthy indexers",
+        ["MetricOverallAvailability"] = "Overall availability",
+        ["MetricFailingIndexers"] = "Failing",
+        ["OverviewBlockedSuffix"] = "blocked",
+        ["OverviewDisabledSuffix"] = "disabled",
+        ["MetricEnabledIndexers"] = "Enabled",
+        ["AutoDisableActive"] = "Auto-disable active",
+        ["AutoDisableInactive"] = "Auto-disable inactive",
+        ["MetricAvgLatency"] = "Average latency",
+        ["MetricAvgLatencyFoot"] = "Average across available checks",
+        ["HealthTrendTitle"] = "Health trend",
+        ["Last24Hours"] = "Last 24 hours",
+        ["HealthChartAria"] = "Indexer health trend chart",
+        ["IndexerStateTitle"] = "Indexer status",
+        ["CurrentDistribution"] = "Current distribution",
+        ["TotalLabel"] = "total"
     };
 
     public static string Normalize(string? language)

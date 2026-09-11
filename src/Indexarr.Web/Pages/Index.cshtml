@@ -40,8 +40,8 @@
 
 <header class="dashboard-heading">
     <div>
-        <h1>Monitoraggio indexer</h1>
-        <p>Panoramica operativa e stato dei tuoi indexer in tempo reale.</p>
+        <h1>@T("DashboardHeading")</h1>
+        <p>@T("DashboardSubheading")</p>
     </div>
 </header>
 
@@ -80,41 +80,41 @@
     <section class="flash-banner">@Model.FlashMessage</section>
 }
 
-<section class="overview-grid" aria-label="Riepilogo stato">
+<section class="overview-grid" aria-label="@T("OverviewSummaryAria")">
     <article class="overview-card overview-card-accent">
-        <div class="overview-card-top"><span class="metric-icon icon-check"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 12 3.2 3.2L17.5 8" /></svg></span><span class="metric-label">Indexer operativi</span><span class="metric-trend trend-up">↗ live</span></div>
+        <div class="overview-card-top"><span class="metric-icon icon-check"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 12 3.2 3.2L17.5 8" /></svg></span><span class="metric-label">@T("MetricHealthyIndexers")</span><span class="metric-trend trend-up">↗ live</span></div>
         <strong class="overview-value">@Model.Dashboard.HealthyIndexers <small>/ @Model.Dashboard.TotalIndexers</small></strong>
-        <span class="overview-foot">Disponibilità complessiva <strong>@(Model.Dashboard.TotalIndexers == 0 ? 0 : Math.Round(Model.Dashboard.HealthyIndexers * 100m / Model.Dashboard.TotalIndexers, 1))%</strong></span>
+        <span class="overview-foot">@T("MetricOverallAvailability") <strong>@(Model.Dashboard.TotalIndexers == 0 ? 0 : Math.Round(Model.Dashboard.HealthyIndexers * 100m / Model.Dashboard.TotalIndexers, 1))%</strong></span>
     </article>
     <article class="overview-card">
-        <div class="overview-card-top"><span class="metric-icon icon-danger"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 8 8 8M16 8l-8 8" /></svg></span><span class="metric-label">In errore</span></div>
+        <div class="overview-card-top"><span class="metric-icon icon-danger"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 8 8 8M16 8l-8 8" /></svg></span><span class="metric-label">@T("MetricFailingIndexers")</span></div>
         <strong class="overview-value">@Model.Dashboard.FailedIndexers</strong>
-        <span class="overview-foot overview-foot-status">@Model.Dashboard.BlockedIndexers bloccato <span aria-hidden="true">·</span> @(Math.Max(0, Model.Dashboard.TotalIndexers - Model.Dashboard.HealthyIndexers - Model.Dashboard.FailedIndexers - Model.Dashboard.BlockedIndexers)) disabilitato</span>
+        <span class="overview-foot overview-foot-status">@Model.Dashboard.BlockedIndexers @T("OverviewBlockedSuffix") <span aria-hidden="true">·</span> @(Math.Max(0, Model.Dashboard.TotalIndexers - Model.Dashboard.HealthyIndexers - Model.Dashboard.FailedIndexers - Model.Dashboard.BlockedIndexers)) @T("OverviewDisabledSuffix")</span>
     </article>
     <article class="overview-card">
-        <div class="overview-card-top"><span class="metric-icon icon-purple"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 4v2M12 18v2M4 12h2M18 12h2" /></svg></span><span class="metric-label">Abilitati</span></div>
+        <div class="overview-card-top"><span class="metric-icon icon-purple"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 4v2M12 18v2M4 12h2M18 12h2" /></svg></span><span class="metric-label">@T("MetricEnabledIndexers")</span></div>
         <strong class="overview-value">@Model.Dashboard.EnabledIndexers <small>/ @Model.Dashboard.TotalIndexers</small></strong>
-        <span class="overview-foot">@(Model.SetupDraft?.AutoDisableFailedIndexers == true ? "Auto-disable attivo" : "Auto-disable disattivo")</span>
+        <span class="overview-foot">@(Model.SetupDraft?.AutoDisableFailedIndexers == true ? T("AutoDisableActive") : T("AutoDisableInactive"))</span>
     </article>
     <article class="overview-card">
-        <div class="overview-card-top"><span class="metric-icon icon-blue"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 14h3l2-7 4 13 2-7h5" /></svg></span><span class="metric-label">Latenza media</span></div>
+        <div class="overview-card-top"><span class="metric-icon icon-blue"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 14h3l2-7 4 13 2-7h5" /></svg></span><span class="metric-label">@T("MetricAvgLatency")</span></div>
         <strong class="overview-value">@(averageLatency > 0 ? Math.Round(averageLatency) : 0) <small>ms</small></strong>
-        <span class="overview-foot">Media sui check disponibili</span>
+        <span class="overview-foot">@T("MetricAvgLatencyFoot")</span>
     </article>
 </section>
 
 <section class="analytics-grid">
     <article class="surface-card health-chart-card">
-        <div class="section-heading-row"><div><h2>Andamento salute</h2><p>Ultime 24 ore</p></div><span class="chart-score">@(Model.Dashboard.TotalIndexers == 0 ? 0 : Math.Round(Model.Dashboard.HealthyIndexers * 100m / Model.Dashboard.TotalIndexers, 1))%</span></div>
-        <div class="health-chart" role="img" aria-label="Grafico andamento salute indexer">
+        <div class="section-heading-row"><div><h2>@T("HealthTrendTitle")</h2><p>@T("Last24Hours")</p></div><span class="chart-score">@(Model.Dashboard.TotalIndexers == 0 ? 0 : Math.Round(Model.Dashboard.HealthyIndexers * 100m / Model.Dashboard.TotalIndexers, 1))%</span></div>
+        <div class="health-chart" role="img" aria-label="@T("HealthChartAria")">
             <div class="chart-grid-lines"><span></span><span></span><span></span><span></span></div>
             <svg viewBox="0 0 720 190" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="healthFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#5b8cff" stop-opacity=".38"/><stop offset="1" stop-color="#5b8cff" stop-opacity="0"/></linearGradient></defs><path class="chart-area" d="M0 132 L48 110 L96 122 L144 94 L192 76 L240 110 L288 146 L336 92 L384 68 L432 54 L480 78 L528 112 L576 96 L624 74 L672 60 L720 78 L720 190 L0 190 Z"/><path class="chart-line" d="M0 132 L48 110 L96 122 L144 94 L192 76 L240 110 L288 146 L336 92 L384 68 L432 54 L480 78 L528 112 L576 96 L624 74 L672 60 L720 78"/></svg>
             <div class="chart-axis"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>now</span></div>
         </div>
     </article>
     <article class="surface-card state-card">
-        <div class="section-heading-row"><div><h2>Stato indexer</h2><p>Distribuzione corrente</p></div></div>
-        <div class="state-overview"><div class="donut-chart" style="--healthy:@(Model.Dashboard.TotalIndexers == 0 ? 0 : Model.Dashboard.HealthyIndexers * 100 / Model.Dashboard.TotalIndexers); --failed:@(Model.Dashboard.TotalIndexers == 0 ? 0 : Model.Dashboard.FailedIndexers * 100 / Model.Dashboard.TotalIndexers); --blocked:@(Model.Dashboard.TotalIndexers == 0 ? 0 : Model.Dashboard.BlockedIndexers * 100 / Model.Dashboard.TotalIndexers); --disabled:@(Model.Dashboard.TotalIndexers == 0 ? 0 : Math.Max(0, Model.Dashboard.TotalIndexers - Model.Dashboard.HealthyIndexers - Model.Dashboard.FailedIndexers - Model.Dashboard.BlockedIndexers) * 100 / Model.Dashboard.TotalIndexers)"><strong>@Model.Dashboard.TotalIndexers</strong><span>totale</span></div><div class="state-legend"><div><span class="legend-dot legend-ok"></span><span>OK</span><strong>@Model.Dashboard.HealthyIndexers</strong></div><div><span class="legend-dot legend-fail"></span><span>FAIL</span><strong>@Model.Dashboard.FailedIndexers</strong></div><div><span class="legend-dot legend-blocked"></span><span>Bloccato</span><strong>@Model.Dashboard.BlockedIndexers</strong></div><div><span class="legend-dot legend-disabled"></span><span>Disabilitato</span><strong>@(Math.Max(0, Model.Dashboard.TotalIndexers - Model.Dashboard.HealthyIndexers - Model.Dashboard.FailedIndexers - Model.Dashboard.BlockedIndexers))</strong></div></div></div>
+        <div class="section-heading-row"><div><h2>@T("IndexerStateTitle")</h2><p>@T("CurrentDistribution")</p></div></div>
+        <div class="state-overview"><div class="donut-chart" style="--healthy:@(Model.Dashboard.TotalIndexers == 0 ? 0 : Model.Dashboard.HealthyIndexers * 100 / Model.Dashboard.TotalIndexers); --failed:@(Model.Dashboard.TotalIndexers == 0 ? 0 : Model.Dashboard.FailedIndexers * 100 / Model.Dashboard.TotalIndexers); --blocked:@(Model.Dashboard.TotalIndexers == 0 ? 0 : Model.Dashboard.BlockedIndexers * 100 / Model.Dashboard.TotalIndexers); --disabled:@(Model.Dashboard.TotalIndexers == 0 ? 0 : Math.Max(0, Model.Dashboard.TotalIndexers - Model.Dashboard.HealthyIndexers - Model.Dashboard.FailedIndexers - Model.Dashboard.BlockedIndexers) * 100 / Model.Dashboard.TotalIndexers)"><strong>@Model.Dashboard.TotalIndexers</strong><span>@T("TotalLabel")</span></div><div class="state-legend"><div><span class="legend-dot legend-ok"></span><span>OK</span><strong>@Model.Dashboard.HealthyIndexers</strong></div><div><span class="legend-dot legend-fail"></span><span>FAIL</span><strong>@Model.Dashboard.FailedIndexers</strong></div><div><span class="legend-dot legend-blocked"></span><span>@T("Blocked")</span><strong>@Model.Dashboard.BlockedIndexers</strong></div><div><span class="legend-dot legend-disabled"></span><span>@T("Disabled")</span><strong>@(Math.Max(0, Model.Dashboard.TotalIndexers - Model.Dashboard.HealthyIndexers - Model.Dashboard.FailedIndexers - Model.Dashboard.BlockedIndexers))</strong></div></div></div>
     </article>
 </section>
 

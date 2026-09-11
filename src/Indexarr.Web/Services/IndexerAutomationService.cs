@@ -857,7 +857,7 @@ public sealed class IndexerAutomationService
             action: "AutoAddCooldownCleared",
             mode: configuration?.Mode ?? "DryRun",
             succeeded: true,
-            details: $"Svuotati manualmente {count} indexer dalla lista cooldown.",
+            details: $"Manually cleared {count} indexer(s) from the cooldown list.",
             cancellationToken: cancellationToken);
     }
 
